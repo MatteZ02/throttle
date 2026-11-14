@@ -359,9 +359,8 @@ const ThrottleControls = ({
   };
 
   const speedText = (() => {
-    if (emergencyStop) {
-      return strings.drive.emergencyStopped;
-    }
+    // An emergency-stopped loco reports speed 0, which is shown as such
+    // (decided by the user): no separate "stopped" text.
     const loco = lead.loco;
     if (loco === undefined || loco.speedDisplay === 'step') {
       return `${strings.drive.speedStep} ${shown.speed} ${strings.drive.of} ${max}`;
@@ -385,7 +384,10 @@ const ThrottleControls = ({
     maxSpeedKmh: lead.loco?.maxSpeed ?? DEFAULT_MAX_SPEED,
     acceleration: lead.loco?.acceleration ?? DEFAULT_ACCELERATION,
     speed: shown.speed,
-    active: powerMode && connected && trackNormal && !emergencyStop,
+    active: powerMode && connected && trackNormal,
+    // A loco STOP returns the handle to coast; moving it again drives on
+    // from 0, which also ends the loco's emergency stop.
+    stopped: emergencyStop,
     drive: (step) => {
       drive(step, shown.forward);
     },

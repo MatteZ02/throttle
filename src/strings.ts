@@ -314,7 +314,6 @@ const en = {
     setReverse: 'Drive in reverse',
     locoStop: 'STOP',
     locoStopHint: 'Stops this loco immediately.',
-    emergencyStopped: 'Stopped',
     waitingForLoco: 'Waiting for the central unit…',
     shared: 'Also driven elsewhere',
     sharedHint: 'Another controller is driving this loco too.',

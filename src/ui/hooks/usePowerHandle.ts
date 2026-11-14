@@ -8,9 +8,12 @@ import {
 type Options = HandleLoco & {
   // The displayed speed step (follows LAN_X_LOCO_INFO).
   speed: number;
-  // False while the handle must not move the loco: not connected, track not
-  // in normal operation, or the loco emergency-stopped.
+  // False while the handle must not move the loco: not connected, or track
+  // not in normal operation. The handle stays at coast meanwhile.
   active: boolean;
+  // The loco is emergency-stopped. When this turns on, the handle returns
+  // to coast; it can be moved again afterwards.
+  stopped: boolean;
   // Sends a new speed step.
   drive: (step: number) => void;
 };
@@ -18,8 +21,8 @@ type Options = HandleLoco & {
 // Runs the power handle of one throttle. While the handle is off centre, it
 // recomputes the speed every HANDLE_TICK_MS and sends the step when it
 // changes; at centre nothing runs. Whenever driving is not allowed (STOP,
-// track off, short circuit, disconnect, loco stop), the handle returns to
-// coast, so the loco never starts again by itself afterwards.
+// track off, short circuit, disconnect) or the loco is stopped, the handle
+// returns to coast, so the loco never starts again by itself afterwards.
 export const usePowerHandle = (options: Options) => {
   const [handle, setHandle] = useState(0);
   const latest = useRef(options);
@@ -29,10 +32,10 @@ export const usePowerHandle = (options: Options) => {
   const moving = handle !== 0;
 
   useEffect(() => {
-    if (!options.active) {
+    if (!options.active || options.stopped) {
       setHandle(0);
     }
-  }, [options.active]);
+  }, [options.active, options.stopped]);
 
   useEffect(() => {
     if (!moving || !latest.current.active) {
