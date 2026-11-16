@@ -41,9 +41,9 @@ E-Stop is used), no F29–F31. Keep every feature that needs FW > 1.33 behind a 
 To reach it, the PC needs a second address in 192.168.0.x on its Ethernet adapter (e.g.
 192.168.0.50; added and removed by the user as administrator).
 
-Branches: `release` is the main branch (the old `main` was replaced by the user; Phase 5 is merged
-into it). Each phase has its own `feat/phase-N-…` branch, created from `release`. The user does
-all pushing and merging into `release`; do not commit directly to `release`.
+Branches: `release` is the main branch, and from 2026-11-16 changes are committed **directly to
+`release`** (decided by the user; a `develop` branch for active development may come later). The
+old `feat/phase-N-…` branches are history. The user does all pushing.
 
 Phase 6 decisions (user, 2026-11-01):
 - App name **Throttle**; bundle ID / package **`fi.alppirautatiet.throttle`** (replace the
@@ -213,7 +213,7 @@ paths (see `docs/development.md`). Emulator AVD: `Medium_Phone_API_37.0` (x86_64
 - Accessibility: large touch targets, respect system font size (do not disable font scaling).
   Dark and light mode, portrait and landscape.
 
-**Git:** small logical commits, one feature branch per phase (`feat/phase-N-…`). Do not push or
+**Git:** small logical commits, directly on `release` (see Branches). Do not push or
 open PRs unless asked. Never commit keystores or signing keys (`*.jks`, `*.p12`, … are
 gitignored).
 
