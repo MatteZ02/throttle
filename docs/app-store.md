@@ -43,6 +43,8 @@ compatible with.
 >
 > DRIVING
 > • Speed slider, direction and a STOP for each loco
+> • Optional power handle mode: coast, accelerate and brake like a real cab, with each loco's
+> own acceleration
 > • Function buttons with names and icons, latching or momentary
 > • Speed shown in km/h, mph or speed steps
 > • Shows when another controller drives the same loco
@@ -50,7 +52,7 @@ compatible with.
 > SAFETY
 > • A global STOP at the top of every driving screen: one tap stops all trains, a quick second
 > tap also switches the track power off
-> • Track status and short circuits are shown clearly
+> • Emergency stop, power off and short circuits are shown in STOP's place; one tap resumes
 >
 > VEHICLE LIBRARY
 > • Locos with photo, address, speed steps, function layout and details

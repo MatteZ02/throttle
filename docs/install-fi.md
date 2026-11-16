@@ -91,24 +91,46 @@ Sovellus pyytää lupaa kameraan tai kuviin vasta, kun lisäät veturille kuvan.
 
 - Avaa **Menu → Drive**.
 - **Liukusäädin** säätää nopeuden. Veturin kuvan molemmin puolin olevat **nuolet** vaihtavat
-  suunnan.
+  suunnan: korostettu nuoli näyttää, mihin suuntaan veturi kulkee.
 - **Toimintopainikkeet** (valot, äänet …) ovat vasemmalla. Lisää löytyy napauttamalla **C I,
   C II, C III**.
 - Veturin oma **STOP** pysäyttää vain sen veturin.
 - Toisen veturin valitset napauttamalla vasemman alakulman **ruudukkopainiketta**. Äskettäin
   ajetut veturit ovat näytön alareunassa.
+- Ajatko veturia pelkällä osoitteella (**Vehicles → Drive by address**)? Vaihda osoite
+  napauttamalla sitä kuvan alla.
+
+### Ajokahva (Power handle)
+
+Jos haluat ajaa kuin oikealla junalla, valitse **Menu → Settings → Drive mode → Power handle**.
+Liukusäädin toimii silloin kuin veturin ajokahva:
+
+- **Keskellä:** rullaus. Juna pitää nopeutensa.
+- **Ylös:** kiihdytys. Mitä ylempänä, sitä nopeammin juna kiihtyy.
+- **Alas:** jarrutus. Mitä alempana, sitä voimakkaammin juna jarruttaa, pysähdykseen asti.
+
+Kunkin veturin kiihtyvyyden voit asettaa veturin tiedoista kohdasta **Acceleration**
+(**Vehicles**-näkymässä; oletus 5 km/h sekunnissa). STOP-painikkeet toimivat kuten ennenkin, ja
+kahva palaa keskelle pysäytyksen jälkeen.
 
 ### Punainen STOP ylhäällä
 
-Näytön yläreunan punainen **STOP** pysäyttää **kaikki** radan junat heti.
+Yläpalkin keskellä oleva punainen **STOP** pysäyttää **kaikki** radan junat heti.
 
 - **Yksi napautus:** kaikki junat pysähtyvät. Raidevirta pysyy päällä.
 - **Kaksi nopeaa napautusta:** kaikki junat pysähtyvät, ja myös **raidevirta katkaistaan**.
-- Kun junat ovat pysähdyksissä, **Online**-merkinnän viereen tulee värillinen merkki:
-  **STOPPED** (kaikki junat pysäytetty), **OFF** (raidevirta pois) tai **SHORT** (oikosulku).
-  Jatka **napauttamalla tätä merkkiä**. Junat jatkavat samoilla nopeuksilla kuin ennen.
+- Kun junat ovat pysähdyksissä, STOPin paikalle tulee värillinen merkki: **STOPPED** (keltainen,
+  kaikki junat pysäytetty), **OFF** (sininen, raidevirta pois) tai **SHORT** (punainen,
+  oikosulku). Jatka **napauttamalla tätä merkkiä**. Junat jatkavat samoilla nopeuksilla kuin
+  ennen.
 
 Sovellus ei koskaan kysy STOPista "oletko varma?", vaan toimii heti.
+
+### Asetukset
+
+Kohdassa **Menu → Settings** voit myös valita, mitä ajonäkymän alareunan palkki näyttää
+(**Recently driven** eli äskettäin ajetut, tai **All vehicles** eli kaikki ajoneuvot
+ajoneuvoluettelon järjestyksessä), sekä kielen (toistaiseksi englanti).
 
 ## Veturien tuonti Rocon Z21-sovelluksesta
 

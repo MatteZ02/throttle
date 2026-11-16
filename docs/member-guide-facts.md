@@ -74,14 +74,29 @@ slightly between phone makers and versions.
 ## Driving (short overview, if useful for the guide)
 
 - Menu → **"Drive"**. The left side has the function buttons (pages C I, C II, C III), the right
-  side the speed slider, the direction arrows either side of the loco photo, and the loco's own
-  **STOP**.
-- The red **STOP** at the top of every screen stops **all** trains. Tapping it twice quickly
-  also switches the track power off. While stopped, a coloured chip beside the connection status
-  shows **"STOPPED"**, **"OFF"** or **"SHORT"** (programming mode: **"PROG"**, not tappable).
+  side the speed slider, the direction arrows either side of the loco photo (the highlighted
+  arrow is the current direction; there is no "Forward"/"Reverse" text), and the loco's own
+  **STOP**. After a loco STOP the speed shows 0.
+- A loco driven by address only ("Drive by address" in Vehicles): tapping the address under the
+  photo opens a window to drive another address.
+- The red **STOP** in the middle of the header stops **all** trains. Tapping it twice quickly
+  (within about half a second) also switches the track power off. While stopped, a coloured
+  chip takes STOP's place: **"STOPPED"** (yellow), **"OFF"** (blue) or **"SHORT"** (red).
   To continue: **tap the chip** (one tap, no confirmation). Locos continue at their speeds.
-- Choose a loco: the grid button at the bottom left opens the vehicle list; recently driven
-  locos are at the bottom of the screen.
+  Programming mode shows **"PROG"** beside the connection status instead (not tappable).
+- Choose a loco: the grid button at the bottom left opens the vehicle list. The strip at the
+  bottom shows recently driven locos, or every vehicle in list order (Settings → "Vehicle bar on
+  the drive screen").
+- **Drive mode** (Settings): **"Speed slider"** (default; the slider sets the speed) or
+  **"Power handle"** (middle = coast, up = accelerate, down = brake, proportionally; the text
+  under the speed says "Power 40 %", "Coast" or "Brake 60 %"). Each loco's rate is
+  **"Acceleration (km/h per second)"** in the loco editor, default 5; braking uses the same rate.
+  Locos without library entry use 5 km/h/s and a 100 km/h top speed. After any STOP the handle
+  returns to the middle.
+- **Language** (Settings): "Phone language (English)" or "English". Only English exists so far;
+  other phone languages fall back to English.
+- New locos get functions F0–F12 laid out row by row: F0 left, F1 right, F2 left on the next row,
+  and so on.
 
 ## Importing locos from the Roco Z21 app
 

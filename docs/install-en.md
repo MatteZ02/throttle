@@ -89,24 +89,45 @@ The app asks for the camera or your photos only when you add a photo to a loco.
 
 - Open **Menu → Drive**.
 - The **slider** sets the speed. The **arrows** on either side of the loco photo set the
-  direction.
+  direction: the highlighted arrow is the direction the loco runs.
 - The **function buttons** (lights, sound, …) are on the left. Tap **C I, C II, C III** for
   more.
 - The loco's own **STOP** stops only that loco.
 - To choose another loco, tap the **grid button** at the bottom left. Locos you drove recently
   are at the bottom of the screen.
+- Driving a loco by its address only (**Vehicles → Drive by address**)? Tap the address under
+  the photo to change it.
+
+### Power handle
+
+If you prefer driving like a real train, choose **Menu → Settings → Drive mode → Power
+handle**. The slider then works like a cab's power handle:
+
+- **Middle:** coast. The train keeps its speed.
+- **Up:** accelerate. The higher, the faster the train speeds up.
+- **Down:** brake. The lower, the harder it brakes, down to a stop.
+
+How quickly each loco speeds up is set with **Acceleration** in the loco's settings under
+**Vehicles** (5 km/h per second unless you change it). The STOP buttons work as usual, and the
+handle returns to the middle after a stop.
 
 ### The red STOP at the top
 
-The red **STOP** at the top of the screen stops **all** trains on the layout, at once.
+The red **STOP** in the middle of the top bar stops **all** trains on the layout, at once.
 
 - **One tap:** all trains stop. The track stays powered.
 - **Two quick taps:** all trains stop, and the **track power is switched off** too.
-- While the trains are stopped, a coloured sign appears next to **Online**: **STOPPED** (all
-  trains stopped), **OFF** (track power off) or **SHORT** (short circuit). To continue, **tap
-  that sign**. The trains then continue at the speeds they had.
+- While the trains are stopped, a coloured sign takes the place of STOP: **STOPPED** (yellow, all
+  trains stopped), **OFF** (blue, track power off) or **SHORT** (red, short circuit). To
+  continue, **tap that sign**. The trains then continue at the speeds they had.
 
 The app never asks "are you sure?" for STOP: it acts immediately.
+
+### Settings
+
+Under **Menu → Settings** you can also choose what the bar at the bottom of the drive screen
+shows (**Recently driven**, or **All vehicles** in the order of your vehicle list) and the
+language (English for now).
 
 ## Bringing your locos from the Roco Z21 app
 
