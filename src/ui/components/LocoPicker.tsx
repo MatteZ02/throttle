@@ -1,7 +1,11 @@
 import {useState} from 'react';
 import {
+  Keyboard,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -49,122 +53,142 @@ export const LocoPicker = ({
         setSteps(speedSteps);
       }}
     >
-      <View style={[styles.scrim, {backgroundColor: colors.scrim}]}>
-        <View
-          style={[
-            styles.dialog,
-            {
-              backgroundColor: colors.surface,
-              borderRadius: radii.lg,
-              padding: spacing.lg,
-              gap: spacing.md,
-            },
-          ]}
+      {/* The iOS number pad has no return key and covers the lower half of
+          the screen, so the dialog moves up above the keyboard (and scrolls
+          if it still does not fit), and a tap outside the field hides it. */}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={[styles.flex, {backgroundColor: colors.scrim}]}
+      >
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={styles.scrim}
         >
-          <Text
-            accessibilityRole="header"
-            style={{color: colors.textPrimary, fontSize: fontSizes.title}}
-          >
-            {strings.drive.chooseLocoTitle}
-          </Text>
-          <Text style={{color: colors.textPrimary, fontSize: fontSizes.body}}>
-            {strings.drive.address}
-          </Text>
-          <TextInput
-            accessibilityLabel={strings.drive.address}
-            value={addressText}
-            onChangeText={setAddressText}
-            keyboardType="number-pad"
-            maxLength={5}
-            selectTextOnFocus
+          <Pressable
+            accessible={false}
+            onPress={Keyboard.dismiss}
             style={[
-              styles.input,
+              styles.dialog,
               {
-                minHeight: minTouchTarget,
-                color: colors.textPrimary,
-                borderColor: colors.border,
-                backgroundColor: colors.background,
-                borderRadius: radii.sm,
-                paddingHorizontal: spacing.md,
-                fontSize: fontSizes.title,
+                backgroundColor: colors.surface,
+                borderRadius: radii.lg,
+                padding: spacing.lg,
+                gap: spacing.md,
               },
             ]}
-          />
-          {!valid && (
-            <Text
-              style={{color: colors.textSecondary, fontSize: fontSizes.small}}
-            >
-              {strings.drive.invalidAddress}
-            </Text>
-          )}
-          <Text style={{color: colors.textPrimary, fontSize: fontSizes.body}}>
-            {strings.drive.speedSteps}
-          </Text>
-          <View
-            accessibilityRole="radiogroup"
-            style={[styles.row, {gap: spacing.sm}]}
           >
-            {STEP_OPTIONS.map((option) => {
-              const selected = option === steps;
-              return (
-                <Pressable
-                  key={option}
-                  accessibilityRole="radio"
-                  accessibilityState={{selected}}
-                  onPress={() => {
-                    setSteps(option);
-                  }}
-                  style={[
-                    styles.option,
-                    {
-                      minHeight: minTouchTarget,
-                      borderRadius: radii.md,
-                      backgroundColor: selected
-                        ? colors.accent
-                        : colors.functionInactive,
-                      borderColor: selected ? colors.accent : colors.border,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={{
-                      color: selected
-                        ? colors.textOnAccent
-                        : colors.textPrimary,
-                      fontSize: fontSizes.large,
-                    }}
-                  >
-                    {option}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-          <View style={[styles.row, {gap: spacing.sm}]}>
-            <AppButton
-              label={strings.drive.cancel}
-              variant="outline"
-              onPress={onCancel}
-              style={styles.flex}
-            />
-            <AppButton
-              label={strings.drive.use}
-              disabled={!valid}
-              onPress={() => {
-                onChoose(parsed, steps);
+            <Text
+              accessibilityRole="header"
+              style={{color: colors.textPrimary, fontSize: fontSizes.title}}
+            >
+              {strings.drive.chooseLocoTitle}
+            </Text>
+            <Text style={{color: colors.textPrimary, fontSize: fontSizes.body}}>
+              {strings.drive.address}
+            </Text>
+            <TextInput
+              accessibilityLabel={strings.drive.address}
+              value={addressText}
+              onChangeText={setAddressText}
+              keyboardType="number-pad"
+              // Android's number pad has a Done key; iOS's has none.
+              returnKeyType="done"
+              onSubmitEditing={() => {
+                if (valid) {
+                  onChoose(parsed, steps);
+                }
               }}
-              style={styles.flex}
+              maxLength={5}
+              selectTextOnFocus
+              style={[
+                styles.input,
+                {
+                  minHeight: minTouchTarget,
+                  color: colors.textPrimary,
+                  borderColor: colors.border,
+                  backgroundColor: colors.background,
+                  borderRadius: radii.sm,
+                  paddingHorizontal: spacing.md,
+                  fontSize: fontSizes.title,
+                },
+              ]}
             />
-          </View>
-        </View>
-      </View>
+            {!valid && (
+              <Text
+                style={{color: colors.textSecondary, fontSize: fontSizes.small}}
+              >
+                {strings.drive.invalidAddress}
+              </Text>
+            )}
+            <Text style={{color: colors.textPrimary, fontSize: fontSizes.body}}>
+              {strings.drive.speedSteps}
+            </Text>
+            <View
+              accessibilityRole="radiogroup"
+              style={[styles.row, {gap: spacing.sm}]}
+            >
+              {STEP_OPTIONS.map((option) => {
+                const selected = option === steps;
+                return (
+                  <Pressable
+                    key={option}
+                    accessibilityRole="radio"
+                    accessibilityState={{selected}}
+                    onPress={() => {
+                      setSteps(option);
+                    }}
+                    style={[
+                      styles.option,
+                      {
+                        minHeight: minTouchTarget,
+                        borderRadius: radii.md,
+                        backgroundColor: selected
+                          ? colors.accent
+                          : colors.functionInactive,
+                        borderColor: selected ? colors.accent : colors.border,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={{
+                        color: selected
+                          ? colors.textOnAccent
+                          : colors.textPrimary,
+                        fontSize: fontSizes.large,
+                      }}
+                    >
+                      {option}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <View style={[styles.row, {gap: spacing.sm}]}>
+              <AppButton
+                label={strings.drive.cancel}
+                variant="outline"
+                onPress={onCancel}
+                style={styles.flex}
+              />
+              <AppButton
+                label={strings.drive.use}
+                disabled={!valid}
+                onPress={() => {
+                  onChoose(parsed, steps);
+                }}
+                style={styles.flex}
+              />
+            </View>
+          </Pressable>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
   scrim: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: 'center',
     padding: 16,
   },
