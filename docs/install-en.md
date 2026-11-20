@@ -1,18 +1,17 @@
 # Throttle: installing and getting started
 
-Throttle is the club's app for driving the trains on the layout from your phone or tablet. It
-connects to the layout's Roco Z21 central unit over the layout's Wi-Fi.
+Throttle is an app for driving the trains on a model railway layout from your phone or tablet.
+It connects to the layout's Roco Z21 central unit over the layout's Wi-Fi.
 
 - You do not need an account, and the app does not use the internet.
 - Your locos, photos and settings are stored only on your own phone.
-- The app is still being tested (version 0.x). Please report anything odd (see the end of this
-  guide).
+- Please report anything odd (see the end of this guide).
 
 Skip to your phone type: [Android](#android) · [iPhone and iPad](#iphone-and-ipad)
 
 ## Android
 
-Throttle is not in the Google Play Store. You download it from the club's GitHub page instead.
+Throttle is not in the Google Play Store. You download it from the project's GitHub page instead.
 That is safe, but Android asks you to confirm a few times.
 
 ### Installing
@@ -47,19 +46,19 @@ installs over the old one, and your locos and settings stay.
 
 ## iPhone and iPad
 
-At first, Throttle is installed through **TestFlight**, Apple's app for testing new apps. Later
-it will be in the App Store, behind a link (you cannot find it by searching).
+Throttle is installed through **TestFlight**, Apple's app for testing new apps, or from the App
+Store through a link (you cannot find it by searching).
 
 ### Installing with TestFlight
 
-1. Open the invitation link from the club: **<TestFlight link>**
+1. Open the invitation link: **<TestFlight link>**
 2. If the phone does not have **TestFlight** yet, the page sends you to the App Store to get it.
    Install it, then open the link again.
 3. In TestFlight, tap **Accept**, then **Install**.
 4. Open **Throttle**.
 
 TestFlight updates the app when there is a new version (or shows an **Update** button). A test
-version stops working after 90 days; by then there will be a newer one.
+version stops working after 90 days; install a newer one from TestFlight.
 
 ### The first start
 
@@ -74,7 +73,7 @@ The app asks for the camera or your photos only when you add a photo to a loco.
 
 ## Connecting to the layout
 
-1. Connect the phone to the **layout's Wi-Fi**. Ask the club for its name and password.
+1. Connect the phone to the **layout's Wi-Fi**. Ask the layout's owner for its name and password.
 2. The layout's Wi-Fi has no internet. The phone may say **No internet** or offer to switch to
    mobile data or another network. Choose to **stay connected** to the layout's Wi-Fi.
 3. Open Throttle. The top right corner shows:
@@ -82,7 +81,7 @@ The app asks for the camera or your photos only when you add a photo to a loco.
    - **Wait**: connecting.
    - **Offline** (red): not connected.
 4. If it stays **Offline**, tap the connection status (or **Menu → Settings**). Check that the
-   **IP address** is the one the club gave you, and tap **Connect**. Roco's default address is
+   **IP address** is the central unit's address, and tap **Connect**. Roco's default address is
    `192.168.0.111`.
 
 ## Driving
@@ -127,7 +126,7 @@ The app never asks "are you sure?" for STOP: it acts immediately.
 
 Under **Menu → Settings** you can also choose what the bar at the bottom of the drive screen
 shows (**Recently driven**, or **All vehicles** in the order of your vehicle list) and the
-language (English for now).
+language.
 
 ## Bringing your locos from the Roco Z21 app
 
@@ -152,10 +151,10 @@ this for each loco under **Vehicles**.
 | **Offline** or **Wait** all the time                           | Is the phone on the **layout's** Wi-Fi (not mobile data, not your home Wi-Fi)? Is the central unit switched on? Is the IP address in Settings right? |
 | Dark banner "Throttle may not use the local network" (Android) | Tap **Open settings → Permissions → Nearby devices → Allow**.                                                                                        |
 | Nothing connects on an iPhone, and there is no error           | **Settings → Privacy & Security → Local Network → Throttle** on.                                                                                     |
-| Banner "This z21 start is locked"                              | The central unit must be unlocked for driving from apps. Tell the club.                                                                              |
+| Banner "This z21 start is locked"                              | The central unit must be unlocked for driving from apps. Tell the layout's owner.                                                                    |
 | Red **SHORT** sign at the top                                  | Something on the track is causing a short (often a derailed wagon). Remove it, then tap the **SHORT** sign to switch the power back on.              |
 | "Also driven elsewhere" on a loco                              | Someone else is driving the same loco. That is allowed; you see their changes too.                                                                   |
 | The import says the file cannot be read                        | Choose the `.z21` file exported from the Roco Z21 app.                                                                                               |
 
-Something else? Report it on **<link to GitHub Issues>**, or tell the club. Say what phone you
+Something else? Report it on **<link to GitHub Issues>**. Say what phone you
 have and what happened.

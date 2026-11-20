@@ -1,12 +1,11 @@
 # Throttle: asennus ja käytön aloitus
 
-Throttle on kerhon sovellus, jolla ajetaan radan junia puhelimella tai tabletilla. Se yhdistää
-radan Roco Z21 -keskusyksikköön radan Wi-Fi-verkon kautta.
+Throttle on sovellus, jolla ajetaan pienoisrautatien junia puhelimella tai tabletilla. Se
+yhdistää radan Roco Z21 -keskusyksikköön radan Wi-Fi-verkon kautta.
 
 - Tunnusta ei tarvita, eikä sovellus käytä internetiä.
 - Veturit, kuvat ja asetukset tallentuvat vain omaan puhelimeesi.
-- Sovellus on vielä testivaiheessa (versio 0.x). Kerro, jos jokin toimii oudosti (ks. ohjeen
-  loppu).
+- Kerro, jos jokin toimii oudosti (ks. ohjeen loppu).
 - Sovellus on englanninkielinen. Tässä ohjeessa painikkeiden nimet on kirjoitettu niin kuin ne
   näkyvät sovelluksessa, **lihavoituna**.
 
@@ -14,7 +13,7 @@ Siirry oman puhelimesi kohtaan: [Android](#android) · [iPhone ja iPad](#iphone-
 
 ## Android
 
-Throttle ei ole Google Play -kaupassa, vaan se ladataan kerhon GitHub-sivulta. Se on turvallista,
+Throttle ei ole Google Play -kaupassa, vaan se ladataan projektin GitHub-sivulta. Se on turvallista,
 mutta Android pyytää vahvistamaan asian muutaman kerran.
 
 ### Asennus
@@ -50,19 +49,19 @@ päälle, ja veturit ja asetukset säilyvät.
 
 ## iPhone ja iPad
 
-Aluksi Throttle asennetaan **TestFlightin** kautta. Se on Applen sovellus uusien sovellusten
-testaamiseen. Myöhemmin Throttle tulee App Storeen linkin taakse (hakemalla sitä ei löydä).
+Throttle asennetaan **TestFlightin** kautta (Applen sovellus uusien sovellusten testaamiseen) tai
+App Storesta linkin kautta (hakemalla sitä ei löydä).
 
 ### Asennus TestFlightilla
 
-1. Avaa kerholta saamasi kutsulinkki: **<TestFlight-linkki>**
+1. Avaa kutsulinkki: **<TestFlight-linkki>**
 2. Jos puhelimessa ei vielä ole **TestFlight**-sovellusta, sivu ohjaa App Storeen hakemaan sen.
    Asenna se ja avaa linkki uudelleen.
 3. Napauta TestFlightissa **Accept** ja sitten **Install**.
 4. Avaa **Throttle**.
 
 TestFlight päivittää sovelluksen, kun uusi versio tulee (tai näyttää **Update**-painikkeen).
-Testiversio lakkaa toimimasta 90 päivän jälkeen; siihen mennessä tarjolla on uudempi.
+Testiversio lakkaa toimimasta 90 päivän jälkeen; asenna silloin uudempi TestFlightista.
 
 ### Ensimmäinen käynnistys
 
@@ -76,7 +75,7 @@ Sovellus pyytää lupaa kameraan tai kuviin vasta, kun lisäät veturille kuvan.
 
 ## Yhdistäminen rataan
 
-1. Yhdistä puhelin **radan Wi-Fi-verkkoon**. Verkon nimen ja salasanan saat kerholta.
+1. Yhdistä puhelin **radan Wi-Fi-verkkoon**. Verkon nimen ja salasanan saat radan ylläpitäjältä.
 2. Radan verkossa ei ole internetiä. Puhelin voi ilmoittaa **Ei internetyhteyttä** tai tarjota
    vaihtoa mobiilidataan tai toiseen verkkoon. Valitse, että **pysyt** radan verkossa.
 3. Avaa Throttle. Oikeassa yläkulmassa näkyy:
@@ -84,7 +83,7 @@ Sovellus pyytää lupaa kameraan tai kuviin vasta, kun lisäät veturille kuvan.
    - **Wait**: yhdistetään.
    - **Offline** (punainen): ei yhteyttä.
 4. Jos tila pysyy **Offline**-tilassa, napauta yhteyden tilaa (tai **Menu → Settings**).
-   Tarkista, että **IP address** on kerholta saamasi osoite, ja napauta **Connect**. Rocon
+   Tarkista, että **IP address** on keskusyksikön osoite, ja napauta **Connect**. Rocon
    oletusosoite on `192.168.0.111`.
 
 ## Ajaminen
@@ -130,7 +129,7 @@ Sovellus ei koskaan kysy STOPista "oletko varma?", vaan toimii heti.
 
 Kohdassa **Menu → Settings** voit myös valita, mitä ajonäkymän alareunan palkki näyttää
 (**Recently driven** eli äskettäin ajetut, tai **All vehicles** eli kaikki ajoneuvot
-ajoneuvoluettelon järjestyksessä), sekä kielen (toistaiseksi englanti).
+ajoneuvoluettelon järjestyksessä), sekä kielen.
 
 ## Veturien tuonti Rocon Z21-sovelluksesta
 
@@ -156,10 +155,10 @@ muuttaa tämän kunkin veturin kohdalta **Vehicles**-näkymässä.
 | **Offline** tai **Wait** koko ajan                              | Onko puhelin **radan** Wi-Fi-verkossa (ei mobiilidatalla, ei kodin verkossa)? Onko keskusyksikkö päällä? Onko Settingsin IP-osoite oikein? |
 | Tumma palkki "Throttle may not use the local network" (Android) | Napauta **Open settings → Käyttöoikeudet → Lähellä olevat laitteet → Salli**.                                                              |
 | iPhonessa mikään ei yhdistä, eikä virheilmoitusta tule          | **Asetukset → Tietosuoja ja turvallisuus → Paikallisverkko → Throttle** päälle.                                                            |
-| Palkki "This z21 start is locked"                               | Keskusyksikön lukitus pitää avata sovelluksilla ajamista varten. Kerro kerholle.                                                           |
+| Palkki "This z21 start is locked"                               | Keskusyksikön lukitus pitää avata sovelluksilla ajamista varten. Kerro radan ylläpitäjälle.                                                |
 | Punainen **SHORT**-merkki ylhäällä                              | Jokin radalla aiheuttaa oikosulun (usein suistunut vaunu). Poista syy ja kytke virta takaisin napauttamalla **SHORT**-merkkiä.             |
 | "Also driven elsewhere" veturin kohdalla                        | Joku muu ajaa samaa veturia. Se on sallittua; näet myös hänen muutoksensa.                                                                 |
 | Tuonti ilmoittaa, ettei tiedostoa voi lukea                     | Valitse Rocon Z21-sovelluksesta viety `.z21`-tiedosto.                                                                                     |
 
-Jotain muuta? Ilmoita siitä **<linkki GitHub Issuesiin>** tai kerro kerholle. Kerro, mikä
+Jotain muuta? Ilmoita siitä **<linkki GitHub Issuesiin>**. Kerro, mikä
 puhelin sinulla on ja mitä tapahtui.

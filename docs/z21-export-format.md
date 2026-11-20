@@ -14,7 +14,7 @@ tables, columns and files.
     ~8 KB files are ordinary 500 × 200 photos too (4 are used by vehicles).
 - Nothing else (no manifest).
 
-## Importer decisions (user, 2026-10-31)
+## Importer decisions (user)
 
 - Wagons (`type` 1) are imported as locos: they have addresses and functions (control cars).
 - No speed-step mode in the export: imported locos get 128 steps.

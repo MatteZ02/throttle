@@ -1,6 +1,6 @@
 # Privacy policy
 
-_Throttle, by Alppirautatieharrastajat ry. Last updated: 10 November 2026._
+_Throttle, by Alppirautatieharrastajat ry._
 
 Throttle does not collect, store or share any personal data with us or anyone else.
 

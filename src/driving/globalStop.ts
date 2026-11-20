@@ -17,7 +17,7 @@ export const STOP_DOUBLE_TAP_WINDOW_MS = 600;
 // the header, and tapping it restores the track (decided by the user). Within
 // the double-tap window of a STOP tap, a tap there still counts as a STOP tap,
 // so the second tap of a double tap switches power off instead of resuming;
-// any later tap resumes (decided by the user, 2026-11-14).
+// any later tap resumes (decided by the user).
 export const STOP_RESTORE_GUARD_MS = STOP_DOUBLE_TAP_WINDOW_MS;
 
 export type StopAction = 'emergencyStop' | 'powerOff';

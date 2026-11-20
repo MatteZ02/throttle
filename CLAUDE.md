@@ -21,42 +21,38 @@ UDP using the Z21 LAN protocol. There is no server, backend, accounts or analyti
 | 3 | Library, photos, loco switching | done, tested on the emulator against the z21 start |
 | 4 | Split screen | done, tested on the emulator (tablet via `wm density 240`) against the z21 start |
 | 5 | Consists, Roco export import | code done; consists driven on the z21 start, the user's export imported on the emulator; awaiting user review |
-| 6 | Builds and docs | done; v0.1.0 released (signed APK); member guides (`docs/install-*.md`), privacy policy and App Store drafts (`docs/app-store.md`) await user review |
-| 7 | UI polish after hardware tests (0.2.x): direction arrows only, address pop-up, vehicle bar and language settings, row-by-row default functions, status in STOP's place, power-off blue, speed slider gradient, power handle drive mode with per-loco acceleration | done; 0.2.1 tested by the user on Android and an iPhone against the z21 (2026-11-16); next: production builds |
+| 6 | Builds and docs | done; v0.1.0 released (signed APK); installation guides (`docs/install-*.md`), privacy policy and App Store drafts (`docs/app-store.md`) await user review |
+| 7 | UI polish after hardware tests (0.2.x): direction arrows only, address pop-up, vehicle bar and language settings, row-by-row default functions, status in STOP's place, power-off blue, speed slider gradient, power handle drive mode with per-loco acceleration | done; 0.2.1 tested by the user on Android and an iPhone against the z21; next: production builds |
 
 Roco app screenshots (`docs/reference/*_phone.PNG`, `*_tablet.PNG`), the spec PDF, a Roco export
 (`docs/reference/z21_layout_import.z21`) and `CLAUDE_CODE_PROMPT.md` exist only locally and are
 gitignored (decided by the user); never commit them. Tests that need the export skip themselves
 when it is missing. Follow the screenshots for layout and flow, without Roco's branding,
-icons or photos. Still waiting for: DR5000 docs and dummy-server notes.
+icons or photos. DR5000 docs and dummy-server notes have not been provided.
 **Do not invent UI layouts or the export format.** Inspect the export before writing the importer.
 Screenshot notes from the user: the − / + beside STOP in `driving_demo_loco_phone.PNG` step the
 **address** of a loco that is not in the library (they are not speed controls, so the throttle
 has none).
 
 Target central units were assumed to run the latest firmware, but the user's z21 start
-(hardware 0x204, serial 148565, unlocked, factory IP 192.168.0.111) runs **FW 1.33**
-(checked 2026-10-31). So the fallbacks are the live path there: no LAN_X_SET_LOCO_E_STOP (the drive
-E-Stop is used), no F29–F31. Keep every feature that needs FW > 1.33 behind a version check.
+(hardware 0x204, serial 148565, unlocked, factory IP 192.168.0.111) runs **FW 1.33**.
+So the fallbacks are the live path there: no LAN_X_SET_LOCO_E_STOP (the drive E-Stop is used), no F29–F31. Keep every feature that needs FW > 1.33 behind a version check.
 To reach it, the PC needs a second address in 192.168.0.x on its Ethernet adapter (e.g.
 192.168.0.50; added and removed by the user as administrator).
 
-Branches: `release` is the main branch, and from 2026-11-16 changes are committed **directly to
-`release`** (decided by the user; a `develop` branch for active development may come later). The
-old `feat/phase-N-…` branches are history. The user does all pushing.
+Branches: `release` is the main branch, and changes are committed **directly to `release`**
+(decided by the user). The old `feat/phase-N-…` branches are history. The user does all pushing.
 
-Phase 6 decisions (user, 2026-11-01):
+Phase 6 decisions (user):
 - App name **Throttle**; bundle ID / package **`fi.alppirautatiet.throttle`** (replace the
   placeholders `AR Z21` / `com.example.arz21` in `app.json`). Licence **MIT**.
 - Icons: the user's set (Claude Design) in `docs/reference/files.zip` (icon.png, Android
   adaptive layers, favicon, logo.svg); copy into `assets/`.
 - Versions 0.x while in development. Android: signed APK, built and uploaded to GitHub Releases
   **by hand**; the user creates and backs up the keystore (give the command and backup advice).
-- iOS: Apple Developer and Expo accounts do not exist yet (recommended: Apple as the association
-  if it is a registered ry, Expo personal account + organisation). The paid Apple membership is
-  needed for **any** install on a real iPhone via EAS, including the user's own test. The user
-  tests on their own iPhone before any App Store step.
-- Member instructions: the user writes them with Claude; provide a factual fact sheet (Android
+- iOS: builds go through EAS with a paid Apple Developer membership (needed for **any** install
+  on a real iPhone). The user tests on their own iPhone before any App Store step.
+- Installation guides: the user writes them with Claude; provide a factual fact sheet (Android
   APK install/update, iOS TestFlight/App Store, permissions, IP, Roco import, troubleshooting).
   No screenshots. Support via GitHub Issues.
 - Android 17 (SDK 37): `ACCESS_LOCAL_NETWORK` is a runtime permission, needed to reach the
@@ -107,7 +103,7 @@ src/
                         are set per loco in the consist, with no mirroring or routing (decided
                         by the user): the member strip picks whose functions are shown.
                         Roco exports are shared from the Roco app through the iOS share sheet;
-                        the Android path is not known yet.
+                        the Android path is not known.
   store/                Zustand stores: connection, track status, live loco state, library, settings
   library/              Loco model, function slots (pages of 2x6, column by column, as the
                         Roco export), icons, validation, speed display (pure, tested);
@@ -124,9 +120,7 @@ src/
                         (default) or a fixed one; unsupported → English.
 ```
 
-Not all folders exist yet. Create them in the phase that needs them.
-
-Current entry points:
+Entry points:
 - `src/connection/ConnectionManager.ts`: the whole connection lifecycle.
 - `src/connection/nativeUdpTransport.ts`: the only file importing the native module. Keep it
   out of `src/connection/index.ts` so the rest stays testable.
@@ -173,11 +167,11 @@ paths (see `docs/development.md`). Emulator AVD: `Medium_Phone_API_37.0` (x86_64
 
 **Safety:**
 - The global STOP is always visible on driving screens. No confirmation on driving actions or STOP.
-  It sits in the header, horizontally centred (decided by the user). Exception (user, 2026-11-13):
+  It sits in the header, horizontally centred (decided by the user). Exception (decided by the user):
   while the track is in emergency stop, power off or short circuit, the track status takes STOP's
   place and a tap restores the track. Within the double-tap window of a STOP tap
   (`STOP_RESTORE_GUARD_MS` = `STOP_DOUBLE_TAP_WINDOW_MS`) a tap there still counts as a STOP tap
-  (double tap → power off); any later tap resumes (user, 2026-11-14).
+  (double tap → power off); any later tap resumes.
 - Changing direction while moving sends the new direction at the current speed, without stopping
   first: DCC decoders handle the reversal (with momentum they brake, reverse, accelerate). Decided
   by the user; revisit only if hardware shows otherwise.

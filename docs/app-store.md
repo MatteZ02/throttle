@@ -1,7 +1,7 @@
 # App Store Connect: what to enter
 
-Drafts for the App Store Connect record, so it can be filled in as soon as the Apple Developer
-membership is active. Character limits are Apple's. Edit freely; nothing here is final.
+Drafts for the App Store Connect record. Character limits are Apple's. Edit freely; nothing here
+is final.
 
 ## App record (My Apps → +)
 
@@ -62,7 +62,7 @@ compatible with.
 > ON THE TABLET
 > • Two throttles side by side in landscape
 >
-> Made by Alppirautatieharrastajat ry for its members. Open source (MIT).
+> Open source (MIT).
 > Throttle is not affiliated with Modelleisenbahn GmbH (Roco). "Z21" is a trademark of its owner.
 
 **Keywords (max 100, comma-separated, no spaces needed):**
@@ -80,7 +80,7 @@ compatible with.
 **Screenshots:** required for iPhone 6.9" (1320 × 2868 or 1290 × 2796) and, because the app
 supports iPad, iPad 13" (2064 × 2752 or 2048 × 2732). 1–10 each. Take them from a TestFlight
 build on a real device (screen of a driving loco, library, consist, tablet split screen). Use
-the club's own loco photos, not Roco's.
+your own loco photos, not Roco's.
 
 ## App information
 
@@ -92,7 +92,7 @@ the club's own loco photos, not Roco's.
 | Privacy policy URL | `https://github.com/MatteZ02/throttle/blob/release/PRIVACY.md` |
 
 The privacy policy URL must open without a login, so it works only while the repository is
-public. If it is private, publish `PRIVACY.md` elsewhere (e.g. the club website or GitHub
+public. If it is private, publish `PRIVACY.md` elsewhere (e.g. a website or GitHub
 Pages) and use that URL.
 
 ## App Privacy
@@ -104,7 +104,7 @@ the local network, which is the user's own device and not collection by the deve
 ## Pricing and availability
 
 - Price: free.
-- Availability: all countries, or only Finland (the club's choice).
+- Availability: all countries, or only Finland.
 - **Unlisted distribution:** after the first version is approved, request it with Apple's
   "Unlisted app distribution" form. The app is then only reachable through its link and does
   not appear in search. TestFlight works before that.
@@ -137,7 +137,7 @@ hardware are often rejected under guideline 2.1 ("could not review") without one
 
 - **Internal testers** (people added as users in App Store Connect, up to 100) can install a
   build right away, without review.
-- **External testers** (members, by e-mail or a public link, up to 10 000) need a short beta
+- **External testers** (users, by e-mail or a public link, up to 10 000) need a short beta
   review of the first build. It asks for "What to test", a feedback e-mail and the same review
   notes as above.
-- Builds expire after 90 days; members then need a newer build (or the App Store version).
+- Builds expire after 90 days; users then need a newer build (or the App Store version).

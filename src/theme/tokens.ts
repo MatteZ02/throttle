@@ -25,5 +25,5 @@ export const fontSizes = {
 } as const;
 
 // Minimum size of any touchable element, in dp. Larger than the platform
-// minimum (44/48) because the app is used by children and elderly members.
+// minimum (44/48) because the app is used by children and elderly users.
 export const minTouchTarget = 56;

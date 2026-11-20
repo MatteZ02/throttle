@@ -1,7 +1,7 @@
 # Z21 LAN protocol: notes for version 1
 
 A navigation aid for the messages this app uses in version 1. **The specification is the
-source of truth**: _Z21 LAN Protocol Specification_, document version 1.13 en (06.11.2023),
+source of truth**: _Z21 LAN Protocol Specification_, document version 1.13 en,
 covering Z21 firmware up to 1.43 (`docs/reference/z21-lan-protokoll-en_1.13.pdf`). Section
 numbers (§) and page numbers (p.) below refer to that PDF. If these notes and the PDF disagree,
 the PDF wins; fix the notes.
@@ -234,7 +234,7 @@ the known state, so that a lost packet cannot invert a function.
 12. **Address range.** The encoding allows 0–16383; DCC long addresses go up to 10239. The address
     0xC0 flag rule uses ≥ 128, so addresses 1–127 are always sent as short addresses.
 13. **LAN_X_SET_LOCO_BINARY_STATE** (out of scope) has DataLen 0x0A in the table, but its bytes
-    add up to 0x0B. Noted in case it is added later.
+    add up to 0x0B.
 14. **"Login" with port.** Logoff must come from the login port (§2.2), and flags are per IP + port.
     On Android/iOS, closing and reopening the socket usually gets a new ephemeral port, so the Z21
     sees a new client. The old one times out after about 60 s and is harmless, but every reopen
@@ -252,7 +252,7 @@ the known state, so that a lost packet cannot invert a function.
     track status (`ConnectionManager.handleMessage`). **Verified on a z21 start (7b): speeds are
     kept, no LOCO_INFO is sent, locos run again after power on.**
 
-## 7a. Observed behaviour of the Z21Sim simulator (2026-10-31)
+## 7a. Observed behaviour of the Z21Sim simulator
 
 The dummy server is `Z21Sim` in Docker (`z21sim-webui`, UDP 21105, web UI on port 6080). It
 reports hardware type `0x204` (z21 start) and firmware 1.43. Compared with the spec:
@@ -264,7 +264,7 @@ reports hardware type `0x204` (z21 start) and firmware 1.43. Compared with the s
 - **After LAN_X_SET_STOP the loco keeps its speed**, and no LOCO_INFO is broadcast. After
   LAN_X_SET_TRACK_POWER_ON the loco still has its old speed, i.e. it would run again.
 
-## 7b. Observed behaviour of a real z21 start, FW 1.33 (2026-10-31)
+## 7b. Observed behaviour of a real z21 start, FW 1.33
 
 Hardware type `0x204`, firmware 1.33, LAN_GET_CODE = 2 (unlocked), factory IP 192.168.0.111. Tested
 with two LAN clients and no track connected (`hw-test.js`, a two-socket script).
@@ -302,7 +302,7 @@ added each feature this app touches:
 | LAN_X_SET_LOCO_E_STOP, LAN_X_PURGE_LOCO, LOCO_INFO M bit | 1.43   | 1.13              |
 
 Third-party units (DR5000) may implement an older subset of this. To check against the DR5000
-documentation once it is available:
+documentation:
 
 - HWINFO and GET_CODE replies.
 - E_STOP support.
@@ -310,7 +310,7 @@ documentation once it is available:
 - SystemState.
 - Whether it packs several datasets per UDP packet.
 
-## 9. Out of scope for v1 (for later reference)
+## 9. Out of scope for v1
 
 | Area                     | Where        |
 | ------------------------ | ------------ |

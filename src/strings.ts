@@ -428,7 +428,7 @@ const en = {
     unknown: 'Unknown central unit',
   } as Record<number | 'unknown', string>,
 
-  // Developer connection test screen (Phase 1). Not shown to members.
+  // Developer connection test screen (Phase 1). Not shown to users.
   debug: {
     title: 'Connection test',
     host: 'Central unit IP address',

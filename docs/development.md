@@ -131,9 +131,9 @@ network permission is not exercised. Test that on a real phone on the layout's W
 
 ## Building a release APK
 
-Members install Android releases as an APK from GitHub Releases. Every release must be signed
+Users install Android releases as an APK from GitHub Releases. Every release must be signed
 with **the same key**: Android only installs an update over the existing app if the signature
-matches. A lost key means every member has to uninstall the app (losing their vehicle library)
+matches. A lost key means every user has to uninstall the app (losing their vehicle library)
 and install it again.
 
 ### 1. Create the signing key (once)
@@ -176,7 +176,7 @@ need them.
 
 In `app.json`, for every release:
 
-- `version`: the version members see, e.g. `0.2.0` (0.x while in development);
+- `version`: the version users see, e.g. `0.2.0` (0.x while in development);
 - `android.versionCode`: **one higher than the previous release** (1, 2, 3, …). Android refuses
   to install an update with the same or a lower number.
 
@@ -212,8 +212,8 @@ $bt = Get-ChildItem "$env:ANDROID_HOME\build-tools" | Sort-Object {[version]$_.N
 
 iOS apps are built in Expo's cloud (EAS Build), so **no Mac is needed**. Two accounts are needed:
 
-- an **Expo account** (free; an Expo organisation such as `alppirautatiet` lets several people
-  share the project);
+- an **Expo account** (free; an Expo organisation, the `owner` in `app.json`, lets several
+  people share the project);
 - an **Apple Developer Program** membership (99 USD a year). It is needed for _any_ install on a
   real iPhone through EAS, including your own test device; TestFlight and the App Store need it
   too. EAS creates and stores the certificates and profiles.
@@ -246,16 +246,13 @@ npx eas-cli submit -p ios                         # uploads to App Store Connect
 
 The iOS build number is kept by EAS (`appVersionSource: remote` in `eas.json`), not in
 `app.json`, so a build never leaves an uncommitted change. The first build asks to initialise it;
-answer with 1. `version` in `app.json` is still the version members see. (Android release builds
-are made by hand and still use `android.versionCode` from `app.json`.)
+answer with 1. `version` in `app.json` is the version users see. (Android release builds
+are made by hand and use `android.versionCode` from `app.json`.)
 
 The app must first be created in App Store Connect with the bundle ID
 `fi.alppirautatiet.throttle`. TestFlight testers are invited from App Store Connect. Unlisted App
 Store distribution is requested from Apple after the first version is approved. Store texts,
 privacy answers and the review notes are drafted in [app-store.md](app-store.md).
-
-The Swift UDP code (`modules/z21-udp/ios`) has not been compiled yet; the first EAS build is its
-first test.
 
 ## Changing colours
 
@@ -323,4 +320,4 @@ const StopButton = () => {
   `textOnEmergencyStop`, `textOnStopButton`). Keep a contrast ratio of at least 4.5:1 for text
   and 3:1 for icons and indicators. Check new values with any WCAG contrast checker.
 - Never rely on colour alone. Always show the status as text or an icon as well, because some
-  members are colour-blind.
+  users are colour-blind.
