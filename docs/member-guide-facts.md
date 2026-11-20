@@ -92,7 +92,7 @@ slightly between phone makers and versions.
   **"Acceleration (km/h per second)"** in the loco editor, default 5; braking uses the same rate.
   Locos without library entry use 5 km/h/s and a 100 km/h top speed. After any STOP the handle
   returns to the middle.
-- **Language** (Settings): "Phone language (English)" or "English". Phone languages
+- **Language** (Settings): "Phone language (…)", "English" or "Suomi". Phone languages
   without a translation fall back to English.
 - New locos get functions F0–F12 laid out row by row: F0 left, F1 right, F2 left on the next row,
   and so on.

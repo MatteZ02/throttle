@@ -4,7 +4,10 @@
 // Languages: `en` below is the reference. A translation is another object of
 // type `Strings` added to LANGUAGES (and LANGUAGE_NAMES); the settings then
 // offer it automatically. The app picks the language at start-up and when the
-// setting changes (setLanguage); see resolveLanguage.
+// setting changes (setLanguage); see resolveLanguage. Translations live in
+// src/i18n/.
+import {fi} from './i18n/fi';
+
 const en = {
   appName: 'Throttle',
   back: 'Back',
@@ -472,7 +475,7 @@ type Widen<T> = T extends string
       : T;
 export type Strings = Widen<typeof en>;
 
-export const LANGUAGES = {en} satisfies Record<string, Strings>;
+export const LANGUAGES = {en, fi} satisfies Record<string, Strings>;
 export type LanguageCode = keyof typeof LANGUAGES;
 export type LanguageSetting = 'system' | LanguageCode;
 export const DEFAULT_LANGUAGE: LanguageCode = 'en';
@@ -481,6 +484,7 @@ export const DEFAULT_LANGUAGE: LanguageCode = 'en';
 // language the app is in.
 export const LANGUAGE_NAMES: Record<LanguageCode, string> = {
   en: 'English',
+  fi: 'Suomi',
 };
 
 const isLanguageCode = (code: string): code is LanguageCode =>

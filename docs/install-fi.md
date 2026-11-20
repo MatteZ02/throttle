@@ -6,8 +6,9 @@ yhdistää radan Roco Z21 -keskusyksikköön radan Wi-Fi-verkon kautta.
 - Tunnusta ei tarvita, eikä sovellus käytä internetiä.
 - Veturit, kuvat ja asetukset tallentuvat vain omaan puhelimeesi.
 - Kerro, jos jokin toimii oudosti (ks. ohjeen loppu).
-- Sovellus on englanninkielinen. Tässä ohjeessa painikkeiden nimet on kirjoitettu niin kuin ne
-  näkyvät sovelluksessa, **lihavoituna**.
+- Sovellus on suomeksi, jos puhelimen kieli on suomi (muuten englanniksi). Kielen voi vaihtaa
+  asetuksista. Tässä ohjeessa painikkeiden nimet on kirjoitettu englanninkielisen sovelluksen
+  mukaan, **lihavoituna**.
 
 Siirry oman puhelimesi kohtaan: [Android](#android) · [iPhone ja iPad](#iphone-ja-ipad)
 
