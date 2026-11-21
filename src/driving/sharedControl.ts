@@ -4,7 +4,8 @@ import {LocoInfo} from '../protocol';
 // on for this long after the last such change.
 export const SHARED_CONTROL_HOLD_MS = 30000;
 // A reported change matching a command this device sent within this time is
-// treated as caused by this device.
+// treated as caused by this device (covers intermediate values of a slider
+// drag that arrive late).
 export const OWN_COMMAND_WINDOW_MS = 3000;
 
 type SentCommand =
@@ -14,30 +15,41 @@ type SentCommand =
 type LocoRecord = {
   previous: LocoInfo | null;
   sent: SentCommand[];
+  // The last speed and direction, and each function, this device set. A
+  // report showing them is explained however old the command is: the
+  // central unit may answer late, a broadcast may be lost, and after a
+  // STOP the loco reappears with the speed it had.
+  lastDrive: {speed: number; forward: boolean} | null;
+  lastFunctions: Map<number, boolean>;
   sharedUntil: number;
   busy: boolean;
 };
 
 // Detects whether another controller is also driving a loco (brief §6.3):
 // - the busy bit, which the central unit sets only for X-BUS handsets;
-// - otherwise, a reported change that no recent command from this device
-//   explains.
-// Changes into emergency stop never count: a STOP from any device stops every
-// loco, which is not someone else driving this one.
+// - otherwise, a reported change that no command from this device explains.
+// Changes into and out of emergency stop never count: a STOP from any device
+// stops every loco, and resuming brings back the speed it had, which is not
+// someone else driving this one.
 export class SharedControlDetector {
   private readonly records = new Map<number, LocoRecord>();
 
   noteDrive(address: number, speed: number, forward: boolean, now: number) {
-    this.record(address, now).sent.push({
-      kind: 'drive',
-      speed,
-      forward,
-      at: now,
-    });
+    const record = this.record(address, now);
+    record.sent.push({kind: 'drive', speed, forward, at: now});
+    record.lastDrive = {speed, forward};
+  }
+
+  // A per-loco emergency stop from this device. The central unit may report
+  // it as an emergency stop or as speed 0.
+  noteEmergencyStop(address: number, forward: boolean, now: number) {
+    this.noteDrive(address, 0, forward, now);
   }
 
   noteFunction(address: number, index: number, on: boolean, now: number) {
-    this.record(address, now).sent.push({kind: 'function', index, on, at: now});
+    const record = this.record(address, now);
+    record.sent.push({kind: 'function', index, on, at: now});
+    record.lastFunctions.set(index, on);
   }
 
   // Returns true if the shared-control state of the loco changed.
@@ -73,7 +85,14 @@ export class SharedControlDetector {
   private record(address: number, now: number): LocoRecord {
     let record = this.records.get(address);
     if (record === undefined) {
-      record = {previous: null, sent: [], sharedUntil: 0, busy: false};
+      record = {
+        previous: null,
+        sent: [],
+        lastDrive: null,
+        lastFunctions: new Map(),
+        sharedUntil: 0,
+        busy: false,
+      };
       this.records.set(address, record);
     }
     record.sent = record.sent.filter(
@@ -88,16 +107,18 @@ export class SharedControlDetector {
     record: LocoRecord,
   ): boolean {
     const driveChanged =
-      previous.speed !== next.speed ||
-      previous.forward !== next.forward ||
-      previous.emergencyStop !== next.emergencyStop;
-    if (driveChanged && !next.emergencyStop) {
-      const explained = record.sent.some(
-        (command) =>
-          command.kind === 'drive' &&
-          command.speed === next.speed &&
-          command.forward === next.forward,
-      );
+      previous.speed !== next.speed || previous.forward !== next.forward;
+    const stopInvolved = previous.emergencyStop || next.emergencyStop;
+    if (driveChanged && !stopInvolved) {
+      const matches = (command: {speed: number; forward: boolean} | null) =>
+        command !== null &&
+        command.speed === next.speed &&
+        command.forward === next.forward;
+      const explained =
+        matches(record.lastDrive) ||
+        record.sent.some(
+          (command) => command.kind === 'drive' && matches(command),
+        );
       if (!explained) {
         return true;
       }
@@ -108,12 +129,14 @@ export class SharedControlDetector {
       if ((previous.functions[index] ?? false) === on) {
         continue;
       }
-      const explained = record.sent.some(
-        (command) =>
-          command.kind === 'function' &&
-          command.index === index &&
-          command.on === on,
-      );
+      const explained =
+        record.lastFunctions.get(index) === on ||
+        record.sent.some(
+          (command) =>
+            command.kind === 'function' &&
+            command.index === index &&
+            command.on === on,
+        );
       if (!explained) {
         return true;
       }

@@ -157,6 +157,7 @@ export class DriveController {
         return [];
       }
       const {forward} = displayedLoco(loco.report, loco.intent);
+      this.shared.noteEmergencyStop(address, forward, this.now());
       this.change(address, loco, {kind: 'emergencyStop'});
       return [{address, steps: loco.steps, forward}];
     });

@@ -79,10 +79,24 @@ describe('SharedControlDetector', () => {
     expect(detector.isShared(3, 100 + SHARED_CONTROL_HOLD_MS)).toBe(false);
   });
 
-  it('treats own commands as foreign once they are too old', () => {
+  it('accepts a late report of this device’s last command', () => {
     const detector = new SharedControlDetector();
     detector.noteReport(report(), 0);
     detector.noteDrive(3, 10, true, 0);
+    detector.noteFunction(3, 0, true, 0);
+    const late = OWN_COMMAND_WINDOW_MS + 5000;
+    detector.noteReport(
+      report({speed: 10, functions: withFunction(0, true)}),
+      late,
+    );
+    expect(detector.isShared(3, late)).toBe(false);
+  });
+
+  it('flags an old intermediate value that is not the last command', () => {
+    const detector = new SharedControlDetector();
+    detector.noteReport(report(), 0);
+    detector.noteDrive(3, 10, true, 0);
+    detector.noteDrive(3, 20, true, 0);
     detector.noteReport(report({speed: 10}), OWN_COMMAND_WINDOW_MS + 1);
     expect(detector.isShared(3, OWN_COMMAND_WINDOW_MS + 1)).toBe(true);
   });
@@ -92,6 +106,24 @@ describe('SharedControlDetector', () => {
     detector.noteReport(report({speed: 50}), 0);
     detector.noteReport(report({speed: 0, emergencyStop: true}), 10);
     expect(detector.isShared(3, 10)).toBe(false);
+  });
+
+  it('does not flag a loco resuming its speed after a STOP', () => {
+    const detector = new SharedControlDetector();
+    detector.noteDrive(3, 50, true, 0);
+    detector.noteReport(report({speed: 50}), 100);
+    detector.noteReport(report({speed: 0, emergencyStop: true}), 20000);
+    detector.noteReport(report({speed: 50}), 40000);
+    expect(detector.isShared(3, 40000)).toBe(false);
+  });
+
+  it('does not flag a loco STOP reported as speed 0', () => {
+    const detector = new SharedControlDetector();
+    detector.noteDrive(3, 50, true, 0);
+    detector.noteReport(report({speed: 50}), 100);
+    detector.noteEmergencyStop(3, true, 10000);
+    detector.noteReport(report({speed: 0}), 10050);
+    expect(detector.isShared(3, 10050)).toBe(false);
   });
 
   it('follows the busy bit while it is set', () => {
