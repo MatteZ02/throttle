@@ -117,10 +117,10 @@ kahva palaa keskelle pysäytyksen jälkeen.
 
 Yläpalkin keskellä oleva punainen **STOP** pysäyttää **kaikki** radan junat heti.
 
-- **Yksi napautus:** kaikki junat pysähtyvät. Raidevirta pysyy päällä.
-- **Kaksi nopeaa napautusta:** kaikki junat pysähtyvät, ja myös **raidevirta katkaistaan**.
+- **Yksi napautus:** kaikki junat pysähtyvät. Ajovirta pysyy päällä.
+- **Kaksi nopeaa napautusta:** kaikki junat pysähtyvät, ja myös **ajovirta katkaistaan**.
 - Kun junat ovat pysähdyksissä, STOPin paikalle tulee värillinen merkki: **STOPPED** (keltainen,
-  kaikki junat pysäytetty), **OFF** (sininen, raidevirta pois) tai **SHORT** (punainen,
+  kaikki junat pysäytetty), **OFF** (sininen, ajovirta pois) tai **SHORT** (punainen,
   oikosulku). Jatka **napauttamalla tätä merkkiä**. Junat jatkavat samoilla nopeuksilla kuin
   ennen.
 

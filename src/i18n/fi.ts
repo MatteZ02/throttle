@@ -271,18 +271,18 @@ export const fi: Strings = {
     label: 'STOP',
     accessibilityHint: {
       emergencyStopThenPowerOff:
-        'Pysäyttää kaikki junat. Kaksi nopeaa napautusta katkaisee myös raidevirran.',
-      emergencyStopOnly: 'Pysäyttää kaikki junat. Raidevirta pysyy päällä.',
-      powerOff: 'Katkaisee raidevirran.',
+        'Pysäyttää kaikki junat. Kaksi nopeaa napautusta katkaisee myös ajovirran.',
+      emergencyStopOnly: 'Pysäyttää kaikki junat. Ajovirta pysyy päällä.',
+      powerOff: 'Katkaisee ajovirran.',
     },
     notConnected: 'Ei yhteyttä: STOP ei tavoita rataa.',
   },
 
   track: {
-    normal: 'Raidevirta päällä',
+    normal: 'Ajovirta päällä',
     emergencyStop: 'Hätäpysäytys: kaikki junat pysäytetty',
-    powerOff: 'Raidevirta on katkaistu',
-    shortCircuit: 'OIKOSULKU: raidevirta on katkaistu',
+    powerOff: 'Ajovirta on katkaistu',
+    shortCircuit: 'OIKOSULKU: ajovirta on katkaistu',
     programming: 'Ohjelmointitila',
     unknown: 'Radan tila ei tiedossa',
     short: {
@@ -293,7 +293,7 @@ export const fi: Strings = {
     },
     resumeHint: 'Jatka napauttamalla. Junat jatkavat aiemmilla nopeuksillaan.',
     powerOnHint:
-      'Kytke raidevirta napauttamalla. Junat jatkavat aiemmilla nopeuksillaan.',
+      'Kytke ajovirta napauttamalla. Junat jatkavat aiemmilla nopeuksillaan.',
   },
 
   drive: {
@@ -369,15 +369,15 @@ export const fi: Strings = {
       emergencyStopThenPowerOff: {
         title: 'Hätäpysäytys, kaksoisnapautus: virta pois',
         detail:
-          'Yksi napautus pysäyttää kaikki junat. Kaksi nopeaa napautusta katkaisee myös raidevirran.',
+          'Yksi napautus pysäyttää kaikki junat. Kaksi nopeaa napautusta katkaisee myös ajovirran.',
       },
       emergencyStopOnly: {
         title: 'Vain hätäpysäytys',
-        detail: 'Pysäyttää kaikki junat. Raidevirta pysyy päällä.',
+        detail: 'Pysäyttää kaikki junat. Ajovirta pysyy päällä.',
       },
       powerOff: {
-        title: 'Raidevirta pois',
-        detail: 'Jokainen napautus katkaisee raidevirran.',
+        title: 'Ajovirta pois',
+        detail: 'Jokainen napautus katkaisee ajovirran.',
       },
     },
     driveModeSection: 'Ajotapa',
@@ -434,8 +434,8 @@ export const fi: Strings = {
     firmware: 'laiteohjelmisto',
     lockCode: 'lukituskoodi',
     requestStatus: 'Kysy tila',
-    powerOn: 'Raidevirta päälle',
-    powerOff: 'Raidevirta pois',
+    powerOn: 'Ajovirta päälle',
+    powerOff: 'Ajovirta pois',
     stop: 'STOP',
     loco: 'Kalustoyksikkö',
     locoAddress: 'Kalustoyksikön osoite',
