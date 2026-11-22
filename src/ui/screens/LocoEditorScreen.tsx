@@ -12,6 +12,7 @@ import {defaultFunctions, nextFreeNumber} from '../../library/functionSlots';
 import {filePhotoStore, PhotoSource, pickPhoto} from '../../library/photos';
 import {
   DEFAULT_ACCELERATION,
+  DEFAULT_BRAKING,
   emptyDetails,
   Loco,
   LocoDraft,
@@ -35,10 +36,14 @@ import {ScreenFrame} from '../components/ScreenFrame';
 type Tab = 'data' | 'functions';
 
 // The form keeps numbers as text while typing.
-type Form = Omit<LocoDraft, 'address' | 'maxSpeed' | 'acceleration'> & {
+type Form = Omit<
+  LocoDraft,
+  'address' | 'maxSpeed' | 'acceleration' | 'braking'
+> & {
   address: string;
   maxSpeed: string;
   acceleration: string;
+  braking: string;
 };
 
 const newForm = (): Form => ({
@@ -48,6 +53,7 @@ const newForm = (): Form => ({
   maxSpeed: '100',
   speedDisplay: 'kmh',
   acceleration: String(DEFAULT_ACCELERATION),
+  braking: String(DEFAULT_BRAKING),
   photo: null,
   notes: '',
   details: emptyDetails(),
@@ -59,6 +65,7 @@ const formFromLoco = (loco: Loco): Form => ({
   address: String(loco.address),
   maxSpeed: String(loco.maxSpeed),
   acceleration: String(loco.acceleration),
+  braking: String(loco.braking),
 });
 
 const toNumber = (text: string): number =>
@@ -184,6 +191,7 @@ export const LocoEditorScreen = () => {
       address: toNumber(form.address),
       maxSpeed: toNumber(form.maxSpeed),
       acceleration: toDecimal(form.acceleration),
+      braking: toDecimal(form.braking),
     };
     try {
       const result = await library.save(draft);
@@ -413,6 +421,17 @@ export const LocoEditorScreen = () => {
             maxLength={5}
             message={problem('accelerationInvalid')}
             hint={strings.editor.accelerationHint}
+          />
+          <FormField
+            label={strings.editor.braking}
+            value={form.braking}
+            onChangeText={(braking) => {
+              update({braking});
+            }}
+            keyboardType="decimal-pad"
+            maxLength={5}
+            message={problem('brakingInvalid')}
+            hint={strings.editor.brakingHint}
           />
           <FormField
             label={strings.editor.notes}

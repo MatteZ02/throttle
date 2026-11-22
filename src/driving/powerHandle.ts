@@ -1,7 +1,8 @@
 // Power handle drive mode: the slider is a combined power/brake handle, as
 // in a real cab. Centre = coast (speed held), up = accelerate, down = brake.
 // The app turns the handle into speed over time and sends the speed steps;
-// the loco's acceleration (km/h per second) sets how fast. Pure functions.
+// the loco's acceleration and braking (km/h per second) set how fast. Pure
+// functions.
 
 // The band around the centre (as a share of each half) that means coast, so
 // the handle is easy to put back to neutral.
@@ -43,13 +44,16 @@ export type HandleLoco = {
   maxStep: number;
   // Top speed in km/h, reached at maxStep.
   maxSpeedKmh: number;
-  // km/h per second at full power; braking at full brake uses the same rate.
+  // km/h gained per second at full power.
   acceleration: number;
+  // km/h lost per second at full brake.
+  braking: number;
 };
 
 // The next speed, in (fractional) speed steps: the handle setting times the
-// loco's acceleration, over the elapsed time. Never below 0 (braking stops,
-// it does not reverse) and never above the top speed.
+// loco's acceleration (power) or braking (brake) rate, over the elapsed
+// time. Never below 0 (braking stops, it does not reverse) and never above
+// the top speed.
 export const nextHandleSpeed = (
   speed: number,
   handle: number,
@@ -59,7 +63,9 @@ export const nextHandleSpeed = (
   if (loco.maxSpeedKmh <= 0 || elapsedMs <= 0) {
     return clamp(speed, 0, loco.maxStep);
   }
-  const stepsPerSecond = (loco.acceleration / loco.maxSpeedKmh) * loco.maxStep;
-  const change = clamp(handle, -1, 1) * stepsPerSecond * (elapsedMs / 1000);
+  const setting = clamp(handle, -1, 1);
+  const rate = setting >= 0 ? loco.acceleration : loco.braking;
+  const stepsPerSecond = (rate / loco.maxSpeedKmh) * loco.maxStep;
+  const change = setting * stepsPerSecond * (elapsedMs / 1000);
   return clamp(speed + change, 0, loco.maxStep);
 };

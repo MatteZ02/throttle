@@ -56,7 +56,10 @@ export const fi: Strings = {
     maxSpeed: 'Huippunopeus (km/h)',
     acceleration: 'Kiihtyvyys (km/h sekunnissa)',
     accelerationHint:
-      'Ajokahvatilassa kalustoyksikkö kiihtyy ja jarruttaa tällä nopeudella.',
+      'Ajokahvatila: kuinka nopeasti kalustoyksikkö kiihtyy täydellä vedolla.',
+    braking: 'Hidastuvuus (km/h sekunnissa)',
+    brakingHint:
+      'Ajokahvatila: kuinka nopeasti kalustoyksikkö hidastuu täydellä jarrutuksella.',
     speedDisplay: 'Näytä nopeus',
     speedDisplays: {kmh: 'km/h', step: 'Nopeusporras', mph: 'mph'},
     notes: 'Muistiinpanot',
@@ -89,6 +92,7 @@ export const fi: Strings = {
       addressInvalid: 'Anna osoite väliltä 1–10239.',
       maxSpeedInvalid: 'Anna huippunopeus väliltä 1–500 km/h.',
       accelerationInvalid: 'Anna kiihtyvyys väliltä 0,1–100 km/h sekunnissa.',
+      brakingInvalid: 'Anna hidastuvuus väliltä 0,1–100 km/h sekunnissa.',
       functionNumberInvalid: 'Toiminnon numeron on oltava väliltä 0–31.',
       functionNumberDuplicate:
         'Kutakin toimintonumeroa voi käyttää vain kerran.',
@@ -389,7 +393,7 @@ export const fi: Strings = {
       powerHandle: {
         title: 'Ajokahva',
         detail:
-          'Keskellä rullaus, ylhäällä veto, alhaalla jarrutus, kunkin kalustoyksikön kiihtyvyydellä. STOP toimii samoin kuin muutenkin.',
+          'Keskellä rullaus, ylhäällä veto, alhaalla jarrutus, kunkin kalustoyksikön kiihtyvyydellä ja hidastuvuudella. STOP toimii samoin kuin muutenkin.',
       },
     },
     vehicleBarSection: 'Ajonäkymän alapalkki',

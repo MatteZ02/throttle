@@ -1,5 +1,9 @@
 import {LibraryService} from '../library/LibraryService';
-import {ConsistMember, DEFAULT_ACCELERATION} from '../library/types';
+import {
+  ConsistMember,
+  DEFAULT_ACCELERATION,
+  DEFAULT_BRAKING,
+} from '../library/types';
 import {DEFAULT_SPEED_STEPS} from '../protocol';
 import {ImportPlan, memberTarget} from './importPlan';
 
@@ -53,6 +57,7 @@ export const applyImport = async (
       speedDisplay: loco.speedDisplay,
       // Not in the export either.
       acceleration: replacing?.acceleration ?? DEFAULT_ACCELERATION,
+      braking: replacing?.braking ?? DEFAULT_BRAKING,
       photo,
       notes: loco.notes,
       details: loco.details,

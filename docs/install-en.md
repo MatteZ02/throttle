@@ -106,9 +106,9 @@ handle**. The slider then works like a cab's power handle:
 - **Up:** accelerate. The higher, the faster the train speeds up.
 - **Down:** brake. The lower, the harder it brakes, down to a stop.
 
-How quickly each loco speeds up is set with **Acceleration** in the loco's settings under
-**Vehicles** (5 km/h per second unless you change it). The STOP buttons work as usual, and the
-handle returns to the middle after a stop.
+How quickly each loco speeds up and slows down is set with **Acceleration** and **Braking** in
+the loco's settings under **Vehicles** (5 km/h per second each unless you change them). The STOP
+buttons work as usual, and the handle returns to the middle after a stop.
 
 ### The red STOP at the top
 

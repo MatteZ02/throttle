@@ -93,8 +93,8 @@ src/
                         detection (pure, tested) and DriveController, which every throttle
                         action goes through. powerHandle.ts: the "power handle" drive mode
                         (Settings → Drive mode; default is the plain speed slider). Centre =
-                        coast, up = power, down = brake, at the lead loco's `acceleration`
-                        (km/h per s, default 5; braking uses the same rate), 0…top speed.
+                        coast, up = power, down = brake, at the lead loco's `acceleration` /
+                        `braking` (km/h per s, default 5 each), 0…top speed.
                         A 100 ms timer runs only while the handle is off centre and sends a
                         step only when it changes; the handle returns to coast on any stop,
                         track status change, disconnect or loco STOP.

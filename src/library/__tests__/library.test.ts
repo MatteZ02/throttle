@@ -134,6 +134,7 @@ describe('draft validation', () => {
     maxSpeed: 200,
     speedDisplay: 'kmh',
     acceleration: 5,
+    braking: 5,
     photo: null,
     notes: '',
     details: emptyDetails(),

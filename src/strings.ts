@@ -59,7 +59,10 @@ const en = {
     maxSpeed: 'Top speed (km/h)',
     acceleration: 'Acceleration (km/h per second)',
     accelerationHint:
-      'Used in the power handle drive mode, for speeding up and braking.',
+      'Power handle drive mode: how quickly the loco speeds up at full power.',
+    braking: 'Braking (km/h per second)',
+    brakingHint:
+      'Power handle drive mode: how quickly the loco slows down at full brake.',
     speedDisplay: 'Show speed as',
     speedDisplays: {kmh: 'km/h', step: 'Speed step', mph: 'mph'},
     notes: 'Notes',
@@ -93,6 +96,7 @@ const en = {
       maxSpeedInvalid: 'Enter a top speed from 1 to 500 km/h.',
       accelerationInvalid:
         'Enter an acceleration from 0.1 to 100 km/h per second.',
+      brakingInvalid: 'Enter a braking rate from 0.1 to 100 km/h per second.',
       functionNumberInvalid: 'Function numbers must be from 0 to 31.',
       functionNumberDuplicate: 'Each function number can be used only once.',
       functionSlotInvalid: 'A function is outside the function pages.',
@@ -400,7 +404,7 @@ const en = {
       powerHandle: {
         title: 'Power handle',
         detail:
-          'Centre coasts, up accelerates, down brakes, at each loco’s acceleration. STOP works as usual.',
+          'Centre coasts, up accelerates, down brakes, at each loco’s acceleration and braking rates. STOP works as usual.',
       },
     },
     vehicleBarSection: 'Vehicle bar on the drive screen',

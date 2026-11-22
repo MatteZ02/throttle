@@ -17,6 +17,7 @@ const draft = (overrides: Partial<LocoDraft> = {}): LocoDraft => ({
   maxSpeed: 200,
   speedDisplay: 'kmh',
   acceleration: 3.5,
+  braking: 7,
   photo: null,
   notes: '',
   details: emptyDetails(),
@@ -60,6 +61,20 @@ describe('migrations', () => {
     expect(locos[0].acceleration).toBe(DEFAULT_ACCELERATION);
   });
 
+  it('gives locos from before version 4 their acceleration as braking', async () => {
+    const db = openTestDatabase();
+    await db.withTransactionAsync(async () => {
+      await db.execAsync(MIGRATIONS[0] + MIGRATIONS[1] + MIGRATIONS[2]);
+      await db.execAsync('PRAGMA user_version = 3;');
+    });
+    await db.runAsync(
+      "INSERT INTO locos (name, address, position, acceleration) VALUES ('Old', 3, 0, 2.5)",
+    );
+    await migrate(db);
+    const locos = await new LocoRepository(db).list();
+    expect(locos[0].braking).toBe(2.5);
+  });
+
   it('refuses a database from a newer app version', async () => {
     const db: SqlDatabase = openTestDatabase();
     await db.execAsync(`PRAGMA user_version = ${SCHEMA_VERSION + 1};`);
@@ -89,6 +104,7 @@ describe('LocoRepository', () => {
       maxSpeed: 200,
       speedDisplay: 'kmh',
       acceleration: 3.5,
+      braking: 7,
       notes: 'Bought 2021',
       details: {railway: 'SBB', articleNumber: '71950'},
     });

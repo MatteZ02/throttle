@@ -53,6 +53,12 @@ export const MIGRATIONS: string[] = [
   `
   ALTER TABLE locos ADD COLUMN acceleration REAL NOT NULL DEFAULT 5;
   `,
+  // 4: braking for the power handle drive mode, in km/h per second. Existing
+  // locos braked at their acceleration until now, so they keep that rate.
+  `
+  ALTER TABLE locos ADD COLUMN braking REAL NOT NULL DEFAULT 5;
+  UPDATE locos SET braking = acceleration;
+  `,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

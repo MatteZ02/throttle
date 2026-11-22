@@ -11,6 +11,7 @@ import {defaultFunctions} from '../../library/functionSlots';
 import {shownSpeed} from '../../library/speedDisplay';
 import {
   DEFAULT_ACCELERATION,
+  DEFAULT_BRAKING,
   DEFAULT_MAX_SPEED,
   Loco,
   VehicleRef,
@@ -376,13 +377,15 @@ const ThrottleControls = ({
     }`;
   })();
 
-  // Power handle mode: the lead loco's top speed and acceleration set how
-  // fast the speed changes (also for a consist, whose speed follows the lead).
+  // Power handle mode: the lead loco's top speed, acceleration and braking set
+  // how fast the speed changes (also for a consist, whose speed follows the
+  // lead).
   const powerMode = driveMode === 'powerHandle';
   const power = usePowerHandle({
     maxStep: max,
     maxSpeedKmh: lead.loco?.maxSpeed ?? DEFAULT_MAX_SPEED,
     acceleration: lead.loco?.acceleration ?? DEFAULT_ACCELERATION,
+    braking: lead.loco?.braking ?? DEFAULT_BRAKING,
     speed: shown.speed,
     active: powerMode && connected && trackNormal,
     // A loco STOP returns the handle to coast; moving it again drives on

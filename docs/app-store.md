@@ -44,7 +44,7 @@ compatible with.
 > DRIVING
 > • Speed slider, direction and a STOP for each loco
 > • Optional power handle mode: coast, accelerate and brake like a real cab, with each loco's
-> own acceleration
+> own acceleration and braking
 > • Function buttons with names and icons, latching or momentary
 > • Speed shown in km/h, mph or speed steps
 > • Shows when another controller drives the same loco

@@ -109,9 +109,9 @@ Liukusäädin toimii silloin kuin veturin ajokahva:
 - **Ylös:** kiihdytys. Mitä ylempänä, sitä nopeammin juna kiihtyy.
 - **Alas:** jarrutus. Mitä alempana, sitä voimakkaammin juna jarruttaa, pysähdykseen asti.
 
-Kunkin veturin kiihtyvyyden voit asettaa veturin tiedoista kohdasta **Acceleration**
-(**Vehicles**-näkymässä; oletus 5 km/h sekunnissa). STOP-painikkeet toimivat kuten ennenkin, ja
-kahva palaa keskelle pysäytyksen jälkeen.
+Kunkin kalustoyksikön kiihtyvyyden ja hidastuvuuden voit asettaa sen tiedoista kohdista
+**Kiihtyvyys** ja **Hidastuvuus** (**Kalusto**-näkymässä; oletus 5 km/h sekunnissa).
+STOP-painikkeet toimivat kuten ennenkin, ja kahva palaa keskelle pysäytyksen jälkeen.
 
 ### Punainen STOP ylhäällä
 

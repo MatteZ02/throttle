@@ -37,7 +37,7 @@ describe('power handle position', () => {
 
 describe('power handle speed', () => {
   // 128 steps (top step 126) for 126 km/h: one step per km/h.
-  const loco = {maxStep: 126, maxSpeedKmh: 126, acceleration: 5};
+  const loco = {maxStep: 126, maxSpeedKmh: 126, acceleration: 5, braking: 5};
 
   it('accelerates by the acceleration per second at full power', () => {
     expect(nextHandleSpeed(0, 1, loco, 1000)).toBeCloseTo(5);
@@ -52,9 +52,16 @@ describe('power handle speed', () => {
     expect(nextHandleSpeed(40, 0, loco, 1000)).toBe(40);
   });
 
-  it('brakes at the same rate and stops at 0 without reversing', () => {
+  it('brakes and stops at 0 without reversing', () => {
     expect(nextHandleSpeed(40, -1, loco, 1000)).toBeCloseTo(35);
     expect(nextHandleSpeed(2, -1, loco, 1000)).toBe(0);
+  });
+
+  it('uses the braking rate when braking and acceleration when powering', () => {
+    const real = {...loco, acceleration: 2, braking: 8};
+    expect(nextHandleSpeed(40, 1, real, 1000)).toBeCloseTo(42);
+    expect(nextHandleSpeed(40, -1, real, 1000)).toBeCloseTo(32);
+    expect(nextHandleSpeed(40, -0.5, real, 1000)).toBeCloseTo(36);
   });
 
   it('never goes above the top speed', () => {
@@ -63,7 +70,7 @@ describe('power handle speed', () => {
 
   it('converts km/h to the throttle scale', () => {
     // 28 steps (top step 28) for 140 km/h: 5 km/h per step.
-    const slow = {maxStep: 28, maxSpeedKmh: 140, acceleration: 10};
+    const slow = {maxStep: 28, maxSpeedKmh: 140, acceleration: 10, braking: 10};
     expect(nextHandleSpeed(0, 1, slow, 1000)).toBeCloseTo(2);
   });
 });

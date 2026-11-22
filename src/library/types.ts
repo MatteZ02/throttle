@@ -33,9 +33,10 @@ export type Loco = {
   // Top speed in km/h, for the km/h and mph displays.
   maxSpeed: number;
   speedDisplay: SpeedDisplay;
-  // Power handle drive mode: km/h gained (or lost when braking) per second
-  // at full power (full brake).
+  // Power handle drive mode: km/h gained per second at full power, and km/h
+  // lost per second at full brake.
   acceleration: number;
+  braking: number;
   // File name in the photo directory, or null.
   photo: string | null;
   notes: string;
@@ -45,6 +46,7 @@ export type Loco = {
 
 // For new locos, imported locos and plain addresses.
 export const DEFAULT_ACCELERATION = 5;
+export const DEFAULT_BRAKING = 5;
 // Top speed of a plain address (not in the library), for the power handle.
 export const DEFAULT_MAX_SPEED = 100;
 

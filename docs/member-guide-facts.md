@@ -88,9 +88,9 @@ slightly between phone makers and versions.
   the drive screen").
 - **Drive mode** (Settings): **"Speed slider"** (default; the slider sets the speed) or
   **"Power handle"** (middle = coast, up = accelerate, down = brake, proportionally; the text
-  under the speed says "Power 40 %", "Coast" or "Brake 60 %"). Each loco's rate is
-  **"Acceleration (km/h per second)"** in the loco editor, default 5; braking uses the same rate.
-  Locos without library entry use 5 km/h/s and a 100 km/h top speed. After any STOP the handle
+  under the speed says "Power 40 %", "Coast" or "Brake 60 %"). Each loco's rates are
+  **"Acceleration (km/h per second)"** and **"Braking (km/h per second)"** in the loco editor,
+  default 5 each. Locos without library entry use 5 km/h/s for both and a 100 km/h top speed. After any STOP the handle
   returns to the middle.
 - **Language** (Settings): "Phone language (…)", "English" or "Suomi". Phone languages
   without a translation fall back to English.
