@@ -2,9 +2,9 @@ import type {Strings} from '../strings';
 
 // Finnish. Same keys as English in src/strings.ts.
 //
-// Terms: a library entry (loco, railcar, multiple unit, control car or coach
-// with a decoder) is an "ajoneuvo"; the collection is "kalusto"; a consist is
-// a "moniajo"; a throttle is an "ajosäädin".
+// Professional railway terms: a library entry (loco, railcar, multiple unit,
+// control car or coach with a decoder) is a "kalustoyksikkö"; the collection
+// is "kalusto"; a consist is a "moniajo"; a throttle is an "ajosäädin".
 export const fi: Strings = {
   appName: 'Throttle',
   back: 'Takaisin',
@@ -17,30 +17,30 @@ export const fi: Strings = {
 
   library: {
     title: 'Kalusto',
-    pickTitle: 'Valitse ajoneuvo',
+    pickTitle: 'Valitse kalustoyksikkö',
     entries: (count: number) =>
-      count === 1 ? '1 ajoneuvo' : `${count} ajoneuvoa`,
+      count === 1 ? '1 kalustoyksikkö' : `${count} kalustoyksikköä`,
     search: 'Hae nimellä tai osoitteella',
-    add: 'Lisää ajoneuvo',
+    add: 'Lisää kalustoyksikkö',
     edit: 'Muuta järjestystä',
     done: 'Valmis',
     sortByName: 'Järjestä A–Ö',
     sortByAddress: 'Järjestä osoitteen mukaan',
     moveUp: 'Siirrä ylös',
     moveDown: 'Siirrä alas',
-    empty: 'Kalusto on tyhjä. Lisää ensimmäinen ajoneuvo +-painikkeella.',
-    noMatches: 'Haulla ei löytynyt ajoneuvoja.',
+    empty: 'Ei kalustoa lisätty.',
+    noMatches: 'Haulla ei löytynyt kalustoyksiköitä.',
     driveByAddress: 'Aja osoitteella',
     addConsist: 'Lisää moniajo',
     consistBadge: 'Moniajo',
     consistMembers: (count: number) =>
-      count === 1 ? '1 ajoneuvo' : `${count} ajoneuvoa`,
+      count === 1 ? '1 kalustoyksikkö' : `${count} kalustoyksikköä`,
     loadError: 'Kalustoa ei voitu avata.',
     noPhoto: 'Ei kuvaa',
   },
 
   editor: {
-    newTitle: 'Uusi ajoneuvo',
+    newTitle: 'Uusi kalustoyksikkö',
     dataTab: 'Tiedot',
     functionsTab: 'Toiminnot',
     photo: 'Kuva',
@@ -56,7 +56,7 @@ export const fi: Strings = {
     maxSpeed: 'Huippunopeus (km/h)',
     acceleration: 'Kiihtyvyys (km/h sekunnissa)',
     accelerationHint:
-      'Ajokahvatilassa ajoneuvo kiihtyy ja jarruttaa tällä nopeudella.',
+      'Ajokahvatilassa kalustoyksikkö kiihtyy ja jarruttaa tällä nopeudella.',
     speedDisplay: 'Näytä nopeus',
     speedDisplays: {kmh: 'km/h', step: 'Nopeusporras', mph: 'mph'},
     notes: 'Muistiinpanot',
@@ -69,19 +69,19 @@ export const fi: Strings = {
     save: 'Tallenna',
     cancel: 'Peruuta',
     duplicate: 'Monista',
-    delete: 'Poista ajoneuvo',
-    deleteTitle: 'Poistetaanko ajoneuvo?',
+    delete: 'Poista kalustoyksikkö',
+    deleteTitle: 'Poistetaanko kalustoyksikkö?',
     deleteMessage: (name: string) =>
       `”${name}” sekä sen toiminnot ja kuva poistetaan. Tätä ei voi perua.`,
     deleteConfirm: 'Poista',
     keep: 'Säilytä',
     discardTitle: 'Hylätäänkö muutokset?',
-    discardMessage: 'Ajoneuvoon tehtyjä muutoksia ei ole tallennettu.',
+    discardMessage: 'Kalustoyksikköön tehtyjä muutoksia ei ole tallennettu.',
     discard: 'Hylkää',
     keepEditing: 'Jatka muokkausta',
     copyName: (name: string) => `${name} (kopio)`,
-    notFound: 'Tätä ajoneuvoa ei ole enää.',
-    saveFailed: 'Ajoneuvoa ei voitu tallentaa.',
+    notFound: 'Tätä kalustoyksikköä ei ole enää.',
+    saveFailed: 'Kalustoyksikköä ei voitu tallentaa.',
     functionsHint:
       'Muuta toimintoa napauttamalla sitä, tai lisää toiminto napauttamalla tyhjää paikkaa. Sivut ovat samat kuin ajonäkymässä.',
     problems: {
@@ -107,31 +107,31 @@ export const fi: Strings = {
     invalid:
       'Tiedostoa ei voitu lukea. Valitse Rocon Z21-sovelluksesta viety .z21-tiedosto.',
     found: (file: string, locos: number, consists: number) =>
-      `${file}: ${locos === 1 ? '1 ajoneuvo' : `${locos} ajoneuvoa`} ja ${
+      `${file}: ${locos === 1 ? '1 kalustoyksikkö' : `${locos} kalustoyksikköä`} ja ${
         consists === 1 ? '1 moniajo' : `${consists} moniajoa`
       }.`,
     duplicatesTitle: (count: number) =>
       count === 1
-        ? '1 ajoneuvon osoite on jo kalustossasi'
-        : `${count} ajoneuvon osoite on jo kalustossasi`,
+        ? '1 kalustoyksikön osoite on jo kalustossasi'
+        : `${count} kalustoyksikön osoite on jo kalustossasi`,
     allDuplicates: 'Kaikille kerralla',
     choices: {skip: 'Ohita', replace: 'Korvaa', keepBoth: 'Pidä molemmat'},
     choiceHints: {
-      skip: 'Pidä oma ajoneuvosi; tätä ei tuoda.',
-      replace: 'Korvaa oma ajoneuvosi tuodulla.',
-      keepBoth: 'Tuo se uutena ajoneuvona samalla osoitteella.',
+      skip: 'Pidä oma kalustoyksikkösi; tätä ei tuoda.',
+      replace: 'Korvaa oma kalustoyksikkösi tuodulla.',
+      keepBoth: 'Tuo se uutena kalustoyksikkönä samalla osoitteella.',
     },
     existing: (name: string) => `Kalustossasi: ${name}`,
-    wagon: 'Vaunu, tuodaan ajettavana ajoneuvona',
+    wagon: 'Vaunu, tuodaan kalustoyksikkönä',
     summary: (
       added: number,
       replaced: number,
       skipped: number,
       consists: number,
     ) =>
-      `Ajoneuvoja lisätään ${added}, korvataan ${replaced} ja ohitetaan ${skipped}. Moniajoja lisätään ${consists}.`,
+      `Kalustoyksiköitä lisätään ${added}, korvataan ${replaced} ja ohitetaan ${skipped}. Moniajoja lisätään ${consists}.`,
     stepsNote:
-      'Roco-sovellus ei tallenna nopeusportaita, joten tuodut ajoneuvot saavat 128 porrasta. Voit muuttaa tämän kunkin ajoneuvon tiedoista.',
+      'Roco-sovellus ei tallenna nopeusportaita, joten tuodut kalustoyksiköt saavat 128 porrasta. Voit muuttaa tämän kunkin kalustoyksikön tiedoista.',
     start: 'Tuo',
     importing: 'Tuodaan… Jos kuvia on paljon, tämä voi kestää noin minuutin.',
     doneTitle: 'Tuonti valmis',
@@ -141,20 +141,20 @@ export const fi: Strings = {
       skipped: number,
       consists: number,
     ) =>
-      `Ajoneuvoja lisätty ${added}, korvattu ${replaced} ja ohitettu ${skipped}. Moniajoja lisätty ${consists}.`,
+      `Kalustoyksiköitä lisätty ${added}, korvattu ${replaced} ja ohitettu ${skipped}. Moniajoja lisätty ${consists}.`,
     problemsTitle: 'Tuomatta jääneet tai muutetut',
     issues: {
       invalidAddress: (name: string, address: number | null) =>
         `${name}: osoite ${address ?? 'puuttuu'} ei ole kelvollinen DCC-osoite.`,
       unsupportedType: (name: string) =>
-        `${name}: tällaista ajoneuvoa ei tueta.`,
+        `${name}: tämän tyyppistä kalustoa ei tueta.`,
       missingPhoto: (name: string) => `${name}: kuva puuttuu tiedostosta.`,
       unknownIcon: (name: string, icon: string) =>
         `${name}: toimintokuvake ”${icon}” on tuntematon, joten toiminto näytetään numerona.`,
       functionSkipped: (name: string, number: number) =>
         `${name}: toimintoa F${number} ei voitu sijoittaa.`,
       missingMember: (name: string) =>
-        `${name}: moniajon ajoneuvo puuttuu tiedostosta.`,
+        `${name}: moniajon kalustoyksikkö puuttuu tiedostosta.`,
       failed: (name: string) => `${name}: ei voitu tallentaa.`,
     },
     toLibrary: 'Näytä kalusto',
@@ -163,19 +163,20 @@ export const fi: Strings = {
   consistEditor: {
     newTitle: 'Uusi moniajo',
     name: 'Nimi',
-    members: 'Ajoneuvot edestä taakse',
+    members: 'Kalustoyksiköt edestä taakse',
     membersHint:
-      'Ensimmäinen ajoneuvo on johtava: sen toiminnot ja nopeus näytetään ajettaessa.',
-    addMember: 'Lisää ajoneuvo',
-    chooseMember: 'Valitse lisättävä ajoneuvo',
-    noLocosLeft: 'Kaikki kaluston ajoneuvot ovat jo tässä moniajossa.',
+      'Ensimmäinen kalustoyksikkö on johtava: sen toiminnot ja nopeus näytetään ajettaessa.',
+    addMember: 'Lisää kalustoyksikkö',
+    chooseMember: 'Valitse lisättävä kalustoyksikkö',
+    noLocosLeft: 'Koko kalusto on jo tässä moniajossa.',
     reversed: 'Kytketty toisin päin',
-    reversedHint: 'Tämä ajoneuvo ajaa muihin nähden vastakkaiseen suuntaan.',
+    reversedHint:
+      'Tämä kalustoyksikkö ajaa muihin nähden vastakkaiseen suuntaan.',
     speedOffset: 'Nopeusero',
     speedOffsetValue: (offset: number, steps: number) =>
       `${offset > 0 ? '+' : ''}${offset} / ${steps} nopeusporrasta`,
     speedOffsetHint:
-      'Tekee tästä ajoneuvosta hieman nopeamman tai hitaamman, jotta kaikki kulkevat samaa nopeutta. Ei koskaan liikuta seisovaa junaa.',
+      'Tekee tästä kalustoyksiköstä hieman nopeamman tai hitaamman, jotta kaikki kulkevat samaa nopeutta. Ei koskaan liikuta seisovaa junaa.',
     slower: 'Hitaammin',
     faster: 'Nopeammin',
     slowerSymbol: '−',
@@ -186,12 +187,12 @@ export const fi: Strings = {
     delete: 'Poista moniajo',
     deleteTitle: 'Poistetaanko moniajo?',
     deleteMessage: (name: string) =>
-      `”${name}” poistetaan. Sen ajoneuvot jäävät kalustoon.`,
+      `”${name}” poistetaan. Sen kalustoyksiköt jäävät kalustoon.`,
     notFound: 'Tätä moniajoa ei ole enää.',
     problems: {
       nameMissing: 'Anna nimi.',
-      membersMissing: 'Lisää vähintään yksi ajoneuvo.',
-      memberDuplicate: 'Sama ajoneuvo voi olla moniajossa vain kerran.',
+      membersMissing: 'Lisää vähintään yksi kalustoyksikkö.',
+      memberDuplicate: 'Sama kalustoyksikkö voi olla moniajossa vain kerran.',
       offsetInvalid: 'Nopeuseron on oltava väliltä −30…+30.',
     },
   },
@@ -297,7 +298,7 @@ export const fi: Strings = {
 
   drive: {
     title: 'Aja',
-    loco: 'Ajoneuvo',
+    loco: 'Kalustoyksikkö',
     address: 'Osoite',
     speedStep: 'Porras',
     of: '/',
@@ -305,15 +306,15 @@ export const fi: Strings = {
     setForward: 'Aja eteenpäin',
     setReverse: 'Aja taaksepäin',
     locoStop: 'STOP',
-    locoStopHint: 'Pysäyttää tämän ajoneuvon heti.',
+    locoStopHint: 'Pysäyttää tämän kalustoyksikön heti.',
     waitingForLoco: 'Odotetaan keskusyksikköä…',
     shared: 'Ohjataan myös muualta',
-    sharedHint: 'Myös toinen ajosäädin ohjaa tätä ajoneuvoa.',
+    sharedHint: 'Myös toinen ajosäädin ohjaa tätä kalustoyksikköä.',
     functions: 'Toiminnot',
     function: 'Toiminto',
     functionLetter: 'F',
-    chooseLoco: 'Valitse ajoneuvo',
-    chooseLocoTitle: 'Ajettava osoite',
+    chooseLoco: 'Valitse kalustoyksikkö',
+    chooseLocoTitle: 'Osoite',
     speedSteps: 'Nopeusportaat',
     invalidAddress: 'Anna osoite väliltä 1–10239.',
     use: 'Aja',
@@ -330,7 +331,7 @@ export const fi: Strings = {
     switchTo: (name: string) => `Aja: ${name}`,
     current: 'Ajossa nyt',
     addressOnly: (address: number) => `Osoite ${address}`,
-    changeAddressHint: 'Avaa ikkunan, jossa voit vaihtaa ajettavan osoitteen.',
+    changeAddressHint: 'Avaa ikkunan, jossa voit vaihtaa osoitteen.',
     powerHandle: 'Ajokahva',
     handleState: (percent: number) =>
       percent > 0
@@ -338,16 +339,16 @@ export const fi: Strings = {
         : percent < 0
           ? `Jarrutus ${-percent} %`
           : 'Rullaus',
-    noLoco: 'Tälle ajosäätimelle ei ole valittu ajoneuvoa.',
+    noLoco: 'Tälle ajosäätimelle ei ole valittu kalustoyksikköä.',
     consistEmpty:
-      'Tässä moniajossa ei ole ajoneuvoja. Lisää niitä Kalusto-näkymässä.',
-    members: 'Moniajon ajoneuvot',
+      'Tässä moniajossa ei ole kalustoyksiköitä. Lisää niitä Kalusto-näkymässä.',
+    members: 'Moniajon kalustoyksiköt',
     memberFunctions: (name: string) => `Näytä toiminnot: ${name}`,
-    conflictTitle: 'Ajoneuvo on jo ajossa',
+    conflictTitle: 'Kalustoyksikkö on jo ajossa',
     conflictMessage: (addresses: number[]) =>
-      `${addresses.length === 1 ? 'Ajoneuvo' : 'Ajoneuvot'} ${addresses.join(', ')} ${
+      `${addresses.length === 1 ? 'Kalustoyksikkö' : 'Kalustoyksiköt'} ${addresses.join(', ')} ${
         addresses.length === 1 ? 'on' : 'ovat'
-      } myös toisella ajosäätimellä. Jos ajoneuvoa ajetaan samaan aikaan yksin ja moniajossa, se voi kulkea väärään suuntaan.`,
+      } myös toisella ajosäätimellä. Jos kalustoyksikköä ajetaan samaan aikaan yksin ja moniajossa, se voi kulkea väärään suuntaan.`,
     driveAnyway: 'Aja silti',
   },
 
@@ -388,18 +389,18 @@ export const fi: Strings = {
       powerHandle: {
         title: 'Ajokahva',
         detail:
-          'Keskellä rullaus, ylhäällä veto, alhaalla jarrutus, kunkin ajoneuvon kiihtyvyydellä. STOP toimii samoin kuin muutenkin.',
+          'Keskellä rullaus, ylhäällä veto, alhaalla jarrutus, kunkin kalustoyksikön kiihtyvyydellä. STOP toimii samoin kuin muutenkin.',
       },
     },
     vehicleBarSection: 'Ajonäkymän alapalkki',
     vehicleBarModes: {
       recent: {
         title: 'Viimeksi ajetut',
-        detail: 'Viimeksi ajettu ajoneuvo ensimmäisenä.',
+        detail: 'Viimeksi ajettu kalustoyksikkö ensimmäisenä.',
       },
       all: {
         title: 'Koko kalusto',
-        detail: 'Kaikki ajoneuvot samassa järjestyksessä kuin kalustossa.',
+        detail: 'Kaikki kalustoyksiköt samassa järjestyksessä kuin kalustossa.',
       },
     },
     languageSection: 'Kieli',
@@ -436,13 +437,13 @@ export const fi: Strings = {
     powerOn: 'Raidevirta päälle',
     powerOff: 'Raidevirta pois',
     stop: 'STOP',
-    loco: 'Ajoneuvo',
-    locoAddress: 'Ajoneuvon osoite',
+    loco: 'Kalustoyksikkö',
+    locoAddress: 'Kalustoyksikön osoite',
     watch: 'Seuraa',
-    noLocoInfo: 'Ei ajoneuvon tietoja',
+    noLocoInfo: 'Ei kalustoyksikön tietoja',
     reverse: 'Vaihda suuntaa',
     light: 'F0',
-    locoStop: 'Ajoneuvon pysäytys',
+    locoStop: 'Kalustoyksikön pysäytys',
     busy: 'varattu',
     log: 'Protokollaloki',
     logEnabled: 'Kirjaa datasetit',
