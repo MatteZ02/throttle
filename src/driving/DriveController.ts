@@ -23,12 +23,20 @@ export type DriveConnection = Pick<
   ConnectionManager,
   | 'on'
   | 'drive'
+  | 'resendDrive'
   | 'setFunction'
   | 'emergencyStop'
   | 'emergencyStopLocos'
   | 'setTrackPower'
   | 'watchLocos'
 >;
+
+// A drive command not confirmed by LAN_X_LOCO_INFO within this time is sent
+// again with a request for the loco's state, at most DRIVE_RESEND_ATTEMPTS
+// times. On a busy Wi-Fi a command or its reply is easily lost; without this
+// the last step of a stop could be lost and the loco keep creeping.
+export const DRIVE_CONFIRM_MS = 500;
+export const DRIVE_RESEND_ATTEMPTS = 3;
 
 type WatchedLoco = {
   watchers: number;
@@ -38,6 +46,11 @@ type WatchedLoco = {
   // Ends the hold of pending changes even if no report arrives.
   intentTimer: ReturnType<typeof setTimeout> | null;
   sharedTimer: ReturnType<typeof setTimeout> | null;
+  // The latest drive command, until a report shows it.
+  confirm: {speed: number; forward: boolean; resends: number} | null;
+  confirmTimer: ReturnType<typeof setTimeout> | null;
+  // When another controller last changed speed or direction (0 = never).
+  foreignDriveAt: number;
   unwatch: () => void;
 };
 
@@ -48,7 +61,7 @@ export class DriveController {
   private readonly locos = new Map<number, WatchedLoco>();
   private readonly shared = new SharedControlDetector();
   private readonly stopTapper: GlobalStopTapper;
-  private unsubscribe: (() => void) | null = null;
+  private unsubscribe: (() => void)[] = [];
 
   constructor(
     private readonly connection: DriveConnection,
@@ -58,14 +71,31 @@ export class DriveController {
   }
 
   start(): void {
-    this.unsubscribe ??= this.connection.on('locoInfo', (report) => {
-      this.handleReport(report);
-    });
+    if (this.unsubscribe.length > 0) {
+      return;
+    }
+    this.unsubscribe = [
+      this.connection.on('locoInfo', (report) => {
+        this.handleReport(report);
+      }),
+      // A stop, power off or lost connection ends every unconfirmed drive
+      // command: it must never be sent again afterwards.
+      this.connection.on('trackStatus', (status) => {
+        if (status !== 'normal') {
+          this.clearAllConfirms();
+        }
+      }),
+      this.connection.on('state', () => {
+        this.clearAllConfirms();
+      }),
+    ];
   }
 
   stop(): void {
-    this.unsubscribe?.();
-    this.unsubscribe = null;
+    this.unsubscribe.forEach((unsubscribe) => {
+      unsubscribe();
+    });
+    this.unsubscribe = [];
     for (const address of [...this.locos.keys()]) {
       this.release(address);
     }
@@ -83,6 +113,9 @@ export class DriveController {
         intent: emptyIntent(),
         intentTimer: null,
         sharedTimer: null,
+        confirm: null,
+        confirmTimer: null,
+        foreignDriveAt: 0,
         unwatch: this.connection.watchLocos([address]),
       };
       this.locos.set(address, loco);
@@ -157,6 +190,7 @@ export class DriveController {
         return [];
       }
       const {forward} = displayedLoco(loco.report, loco.intent);
+      this.clearConfirm(loco);
       this.shared.noteEmergencyStop(address, forward, this.now());
       this.change(address, loco, {kind: 'emergencyStop'});
       return [{address, steps: loco.steps, forward}];
@@ -207,6 +241,7 @@ export class DriveController {
   // done, so the UI can give matching feedback.
   globalStop(mode: StopMode): StopAction {
     const action = this.stopTapper.tap(mode);
+    this.clearAllConfirms();
     // Loco displays are not changed here: the track status chip shows the
     // stop, and the connection asks for the locos' state afterwards, so the
     // screen shows what the central unit actually holds.
@@ -242,6 +277,53 @@ export class DriveController {
     this.shared.noteDrive(address, speed, forward, this.now());
     this.change(address, loco, change);
     this.connection.drive({address, steps: loco.steps, speed, forward});
+    loco.confirm = {speed, forward, resends: 0};
+    this.scheduleConfirm(address, loco);
+  }
+
+  private scheduleConfirm(address: number, loco: WatchedLoco): void {
+    if (loco.confirmTimer !== null) {
+      clearTimeout(loco.confirmTimer);
+    }
+    loco.confirmTimer = setTimeout(() => {
+      loco.confirmTimer = null;
+      const pending = loco.confirm;
+      if (pending === null) {
+        return;
+      }
+      if (pending.resends >= DRIVE_RESEND_ATTEMPTS) {
+        loco.confirm = null;
+        return;
+      }
+      pending.resends++;
+      this.shared.noteDrive(
+        address,
+        pending.speed,
+        pending.forward,
+        this.now(),
+      );
+      this.connection.resendDrive({
+        address,
+        steps: loco.steps,
+        speed: pending.speed,
+        forward: pending.forward,
+      });
+      this.scheduleConfirm(address, loco);
+    }, DRIVE_CONFIRM_MS);
+  }
+
+  private clearConfirm(loco: WatchedLoco): void {
+    loco.confirm = null;
+    if (loco.confirmTimer !== null) {
+      clearTimeout(loco.confirmTimer);
+      loco.confirmTimer = null;
+    }
+  }
+
+  private clearAllConfirms(): void {
+    for (const loco of this.locos.values()) {
+      this.clearConfirm(loco);
+    }
   }
 
   private change(address: number, loco: WatchedLoco, change: LocoChange) {
@@ -271,7 +353,31 @@ export class DriveController {
     const now = this.now();
     loco.report = report;
     loco.intent = reconcileIntent(loco.intent, report, now);
-    this.shared.noteReport(report, now);
+    const {foreignDrive} = this.shared.noteReport(report, now);
+    const confirm = loco.confirm;
+    if (
+      confirm !== null &&
+      !report.emergencyStop &&
+      report.speed === confirm.speed &&
+      report.forward === confirm.forward
+    ) {
+      this.clearConfirm(loco);
+    }
+    if (foreignDrive || report.emergencyStop) {
+      // Someone else drove or stopped the loco: their speed and direction
+      // are shown at once, and this device's unconfirmed values are dropped,
+      // so neither the display nor a resend overrides them.
+      this.clearConfirm(loco);
+      loco.intent = {
+        ...loco.intent,
+        speed: undefined,
+        emergencyStop: undefined,
+        forward: undefined,
+      };
+    }
+    if (foreignDrive) {
+      loco.foreignDriveAt = now;
+    }
     this.scheduleSharedExpiry(report.address, loco, now);
     this.publish(report.address);
   }
@@ -304,6 +410,7 @@ export class DriveController {
     const live: LiveLoco = {
       ...displayedLoco(loco.report, loco.intent),
       shared: this.shared.isShared(address, this.now()),
+      foreignDriveAt: loco.foreignDriveAt,
     };
     // Until the central unit reports the mode, show the configured one.
     live.speedSteps ??= loco.steps;
@@ -323,6 +430,7 @@ export class DriveController {
     if (loco.intentTimer !== null) {
       clearTimeout(loco.intentTimer);
     }
+    this.clearConfirm(loco);
     loco.unwatch();
     this.locos.delete(address);
     this.shared.forget(address);

@@ -78,6 +78,7 @@ The app asks for the camera or your photos only when you add a photo to a loco.
    mobile data or another network. Choose to **stay connected** to the layout's Wi-Fi.
 3. Open Throttle. The top right corner shows:
    - **Online** (green): connected. You can drive.
+   - **Weak** (yellow): connected, but the layout's Wi-Fi is losing messages. You can still drive.
    - **Wait**: connecting.
    - **Offline** (red): not connected.
 4. If it stays **Offline**, tap the connection status (or **Menu → Settings**). Check that the
@@ -102,7 +103,8 @@ The app asks for the camera or your photos only when you add a photo to a loco.
 If you prefer driving like a real train, choose **Menu → Settings → Drive mode → Power
 handle**. The slider then works like a cab's power handle:
 
-- **Middle:** coast. The train keeps its speed.
+- **Middle:** coasting. The train keeps its speed. When it stands still, the screen says
+  **Stopped**.
 - **Up:** accelerate. The higher, the faster the train speeds up.
 - **Down:** brake. The lower, the harder it brakes, down to a stop.
 
@@ -148,6 +150,7 @@ this for each loco under **Vehicles**.
 
 | What you see                                                   | What to do                                                                                                                                           |
 | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Weak** often                                                 | The layout's Wi-Fi is busy or the signal is poor. Driving still works; the app repeats lost commands. Move closer to the Wi-Fi if you can.           |
 | **Offline** or **Wait** all the time                           | Is the phone on the **layout's** Wi-Fi (not mobile data, not your home Wi-Fi)? Is the central unit switched on? Is the IP address in Settings right? |
 | Dark banner "Throttle may not use the local network" (Android) | Tap **Open settings → Permissions → Nearby devices → Allow**.                                                                                        |
 | Nothing connects on an iPhone, and there is no error           | **Settings → Privacy & Security → Local Network → Throttle** on.                                                                                     |

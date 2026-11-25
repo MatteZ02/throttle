@@ -65,7 +65,9 @@ slightly between phone makers and versions.
 2. The layout Wi-Fi may have no internet. The phone may say "No internet" or offer to switch to
    mobile data or another network. Choose to **stay connected** to the layout Wi-Fi.
 3. Open Throttle. The top right corner shows the connection: **"Online"** (green) when
-   connected, **"Wait"** while connecting, **"Offline"** (red) when not connected.
+   connected, **"Weak"** (yellow) when connected but replies are missing (driving still works;
+   lost commands are repeated), **"Wait"** while connecting, **"Offline"** (red) when not
+   connected. The controls lock only after 20 s without any reply.
 4. If it does not connect: tap the connection status (or Menu → **Settings**), check the **IP
    address** of the central unit (Roco's default is `192.168.0.111`; the layout may use another),
    and tap **"Connect"**. Settings also shows which central unit and firmware were found.
@@ -88,7 +90,7 @@ slightly between phone makers and versions.
   the drive screen").
 - **Drive mode** (Settings): **"Speed slider"** (default; the slider sets the speed) or
   **"Power handle"** (middle = coast, up = accelerate, down = brake, proportionally; the text
-  under the speed says "Power 40 %", "Coast" or "Brake 60 %"). Each loco's rates are
+  under the speed says "Power 40 %", "Coasting", "Stopped" or "Brake 60 %"). Each loco's rates are
   **"Acceleration (km/h per second)"** and **"Braking (km/h per second)"** in the loco editor,
   default 5 each. Locos without library entry use 5 km/h/s for both and a 100 km/h top speed. After any STOP the handle
   returns to the middle.

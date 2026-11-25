@@ -387,6 +387,7 @@ const ThrottleControls = ({
     acceleration: lead.loco?.acceleration ?? DEFAULT_ACCELERATION,
     braking: lead.loco?.braking ?? DEFAULT_BRAKING,
     speed: shown.speed,
+    foreignDriveAt: leadLive?.foreignDriveAt ?? 0,
     active: powerMode && connected && trackNormal,
     // A loco STOP returns the handle to coast; moving it again drives on
     // from 0, which also ends the loco's emergency stop.
@@ -469,7 +470,9 @@ const ThrottleControls = ({
                   {color: colors.textSecondary, fontSize: fontSizes.body},
                 ]}
               >
-                {strings.drive.handleState(Math.round(power.handle * 100))}
+                {power.handle === 0 && shown.speed === 0
+                  ? strings.drive.handleStopped
+                  : strings.drive.handleState(Math.round(power.handle * 100))}
               </Text>
             )}
             {lives.some((live) => live?.shared) && (

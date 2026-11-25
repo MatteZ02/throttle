@@ -4,6 +4,8 @@ import {DisplayedLoco} from '../driving/locoIntent';
 export type LiveLoco = DisplayedLoco & {
   // Another controller is also driving this loco (brief §6.3).
   shared: boolean;
+  // When another controller last changed speed or direction (0 = never).
+  foreignDriveAt: number;
 };
 
 type LocoStoreState = {

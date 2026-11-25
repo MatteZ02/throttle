@@ -81,6 +81,8 @@ Sovellus pyytää lupaa kameraan tai kuviin vasta, kun lisäät veturille kuvan.
    vaihtoa mobiilidataan tai toiseen verkkoon. Valitse, että **pysyt** radan verkossa.
 3. Avaa Throttle. Oikeassa yläkulmassa näkyy:
    - **Online** (vihreä): yhteys on. Voit ajaa.
+   - **Weak** (keltainen): yhteys on, mutta radan Wi-Fi-verkossa katoaa viestejä. Voit silti
+     ajaa.
    - **Wait**: yhdistetään.
    - **Offline** (punainen): ei yhteyttä.
 4. Jos tila pysyy **Offline**-tilassa, napauta yhteyden tilaa (tai **Menu → Settings**).
@@ -105,7 +107,8 @@ Sovellus pyytää lupaa kameraan tai kuviin vasta, kun lisäät veturille kuvan.
 Jos haluat ajaa kuin oikealla junalla, valitse **Menu → Settings → Drive mode → Power handle**.
 Liukusäädin toimii silloin kuin veturin ajokahva:
 
-- **Keskellä:** rullaus. Juna pitää nopeutensa.
+- **Keskellä:** rullaus. Juna pitää nopeutensa. Kun juna seisoo, näytössä lukee
+  **Pysähdyksissä**.
 - **Ylös:** kiihdytys. Mitä ylempänä, sitä nopeammin juna kiihtyy.
 - **Alas:** jarrutus. Mitä alempana, sitä voimakkaammin juna jarruttaa, pysähdykseen asti.
 
@@ -151,15 +154,16 @@ muuttaa tämän kunkin veturin kohdalta **Vehicles**-näkymässä.
 
 ## Jos jokin ei toimi
 
-| Mitä näet                                                       | Mitä teet                                                                                                                                  |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Offline** tai **Wait** koko ajan                              | Onko puhelin **radan** Wi-Fi-verkossa (ei mobiilidatalla, ei kodin verkossa)? Onko keskusyksikkö päällä? Onko Settingsin IP-osoite oikein? |
-| Tumma palkki "Throttle may not use the local network" (Android) | Napauta **Open settings → Käyttöoikeudet → Lähellä olevat laitteet → Salli**.                                                              |
-| iPhonessa mikään ei yhdistä, eikä virheilmoitusta tule          | **Asetukset → Tietosuoja ja turvallisuus → Paikallisverkko → Throttle** päälle.                                                            |
-| Palkki "This z21 start is locked"                               | Keskusyksikön lukitus pitää avata sovelluksilla ajamista varten. Kerro radan ylläpitäjälle.                                                |
-| Punainen **SHORT**-merkki ylhäällä                              | Jokin radalla aiheuttaa oikosulun (usein suistunut vaunu). Poista syy ja kytke virta takaisin napauttamalla **SHORT**-merkkiä.             |
-| "Also driven elsewhere" veturin kohdalla                        | Joku muu ajaa samaa veturia. Se on sallittua; näet myös hänen muutoksensa.                                                                 |
-| Tuonti ilmoittaa, ettei tiedostoa voi lukea                     | Valitse Rocon Z21-sovelluksesta viety `.z21`-tiedosto.                                                                                     |
+| Mitä näet                                                       | Mitä teet                                                                                                                                            |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Weak** usein                                                  | Radan Wi-Fi on ruuhkainen tai signaali heikko. Ajaminen toimii silti; sovellus toistaa kadonneet käskyt. Siirry lähemmäs Wi-Fi-tukiasemaa, jos voit. |
+| **Offline** tai **Wait** koko ajan                              | Onko puhelin **radan** Wi-Fi-verkossa (ei mobiilidatalla, ei kodin verkossa)? Onko keskusyksikkö päällä? Onko Settingsin IP-osoite oikein?           |
+| Tumma palkki "Throttle may not use the local network" (Android) | Napauta **Open settings → Käyttöoikeudet → Lähellä olevat laitteet → Salli**.                                                                        |
+| iPhonessa mikään ei yhdistä, eikä virheilmoitusta tule          | **Asetukset → Tietosuoja ja turvallisuus → Paikallisverkko → Throttle** päälle.                                                                      |
+| Palkki "This z21 start is locked"                               | Keskusyksikön lukitus pitää avata sovelluksilla ajamista varten. Kerro radan ylläpitäjälle.                                                          |
+| Punainen **SHORT**-merkki ylhäällä                              | Jokin radalla aiheuttaa oikosulun (usein suistunut vaunu). Poista syy ja kytke virta takaisin napauttamalla **SHORT**-merkkiä.                       |
+| "Also driven elsewhere" veturin kohdalla                        | Joku muu ajaa samaa veturia. Se on sallittua; näet myös hänen muutoksensa.                                                                           |
+| Tuonti ilmoittaa, ettei tiedostoa voi lukea                     | Valitse Rocon Z21-sovelluksesta viety `.z21`-tiedosto.                                                                                               |
 
 Jotain muuta? Ilmoita siitä **<linkki GitHub Issuesiin>**. Kerro, mikä
 puhelin sinulla on ja mitä tapahtui.

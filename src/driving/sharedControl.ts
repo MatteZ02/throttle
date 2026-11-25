@@ -12,6 +12,11 @@ type SentCommand =
   | {kind: 'drive'; speed: number; forward: boolean; at: number}
   | {kind: 'function'; index: number; on: boolean; at: number};
 
+export type ReportVerdict = {
+  sharedChanged: boolean;
+  foreignDrive: boolean;
+};
+
 type LocoRecord = {
   previous: LocoInfo | null;
   sent: SentCommand[];
@@ -52,17 +57,27 @@ export class SharedControlDetector {
     record.lastFunctions.set(index, on);
   }
 
-  // Returns true if the shared-control state of the loco changed.
-  noteReport(report: LocoInfo, now: number): boolean {
+  // sharedChanged: the shared-control state of the loco changed.
+  // foreignDrive: the report changes speed or direction in a way no command
+  // from this device explains (another controller drove the loco).
+  noteReport(report: LocoInfo, now: number): ReportVerdict {
     const record = this.record(report.address, now);
     const wasShared = this.isShared(report.address, now);
     const previous = record.previous;
     record.previous = report;
     record.busy = report.busy;
-    if (previous !== null && this.hasForeignChange(previous, report, record)) {
+    const foreignDrive =
+      previous !== null && this.hasForeignDrive(previous, report, record);
+    if (
+      foreignDrive ||
+      (previous !== null && this.hasForeignFunction(previous, report, record))
+    ) {
       record.sharedUntil = now + SHARED_CONTROL_HOLD_MS;
     }
-    return this.isShared(report.address, now) !== wasShared;
+    return {
+      sharedChanged: this.isShared(report.address, now) !== wasShared,
+      foreignDrive,
+    };
   }
 
   isShared(address: number, now: number): boolean {
@@ -101,7 +116,7 @@ export class SharedControlDetector {
     return record;
   }
 
-  private hasForeignChange(
+  private hasForeignDrive(
     previous: LocoInfo,
     next: LocoInfo,
     record: LocoRecord,
@@ -109,20 +124,26 @@ export class SharedControlDetector {
     const driveChanged =
       previous.speed !== next.speed || previous.forward !== next.forward;
     const stopInvolved = previous.emergencyStop || next.emergencyStop;
-    if (driveChanged && !stopInvolved) {
-      const matches = (command: {speed: number; forward: boolean} | null) =>
-        command !== null &&
-        command.speed === next.speed &&
-        command.forward === next.forward;
-      const explained =
-        matches(record.lastDrive) ||
-        record.sent.some(
-          (command) => command.kind === 'drive' && matches(command),
-        );
-      if (!explained) {
-        return true;
-      }
+    if (!driveChanged || stopInvolved) {
+      return false;
     }
+    const matches = (command: {speed: number; forward: boolean} | null) =>
+      command !== null &&
+      command.speed === next.speed &&
+      command.forward === next.forward;
+    const explained =
+      matches(record.lastDrive) ||
+      record.sent.some(
+        (command) => command.kind === 'drive' && matches(command),
+      );
+    return !explained;
+  }
+
+  private hasForeignFunction(
+    previous: LocoInfo,
+    next: LocoInfo,
+    record: LocoRecord,
+  ): boolean {
     const count = Math.max(previous.functions.length, next.functions.length);
     for (let index = 0; index < count; index++) {
       const on = next.functions[index] ?? false;

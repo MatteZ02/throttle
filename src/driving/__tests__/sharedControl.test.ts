@@ -53,8 +53,29 @@ describe('SharedControlDetector', () => {
   it('flags a speed change nobody here asked for', () => {
     const detector = new SharedControlDetector();
     detector.noteReport(report(), 0);
-    expect(detector.noteReport(report({speed: 33}), 100)).toBe(true);
+    expect(detector.noteReport(report({speed: 33}), 100)).toEqual({
+      sharedChanged: true,
+      foreignDrive: true,
+    });
     expect(detector.isShared(3, 100)).toBe(true);
+  });
+
+  it('does not call a late reply to an own command a foreign drive', () => {
+    const detector = new SharedControlDetector();
+    detector.noteReport(report({speed: 2}), 0);
+    detector.noteDrive(3, 1, true, 100);
+    detector.noteDrive(3, 0, true, 200);
+    expect(detector.noteReport(report({speed: 1}), 300).foreignDrive).toBe(
+      false,
+    );
+  });
+
+  it('does not call a function change a foreign drive', () => {
+    const detector = new SharedControlDetector();
+    detector.noteReport(report(), 0);
+    expect(
+      detector.noteReport(report({functions: withFunction(1, true)}), 10),
+    ).toEqual({sharedChanged: true, foreignDrive: false});
   });
 
   it('flags a direction or function change nobody here asked for', () => {
@@ -131,7 +152,9 @@ describe('SharedControlDetector', () => {
     detector.noteReport(report({busy: true}), 0);
     expect(detector.isShared(3, 0)).toBe(true);
     expect(detector.sharedUntil(3)).toBeUndefined();
-    expect(detector.noteReport(report({busy: false}), 10)).toBe(true);
+    expect(detector.noteReport(report({busy: false}), 10).sharedChanged).toBe(
+      true,
+    );
     expect(detector.isShared(3, 10)).toBe(false);
   });
 });

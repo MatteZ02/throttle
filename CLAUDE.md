@@ -86,7 +86,7 @@ app/                    Expo Router routes (entry: expo-router/entry): thin, the
 modules/z21-udp/        local Expo Module: UDP socket (Kotlin DatagramSocket / Swift NWConnection)
 src/
   protocol/             PURE TypeScript. No React / React Native imports. Encode/decode datasets.
-  connection/           ConnectionManager: one socket, connect/keepalive/reconnect/logoff,
+  connection/           ConnectionManager: one socket, connect/status checks/reconnect/logoff,
                         subscription set (max 16), 100 ms throttle, typed events.
                         Depends on a UdpTransport interface, so tests use a fake.
   driving/              Global STOP taps, pending-change reconciliation, shared-control
@@ -96,7 +96,9 @@ src/
                         coast, up = power, down = brake, at the lead loco's `acceleration` /
                         `braking` (km/h per s, default 5 each), 0…top speed.
                         A 100 ms timer runs only while the handle is off centre and sends a
-                        step only when it changes; the handle returns to coast on any stop,
+                        step only when it changes; a stop reached by braking is held at 0
+                        (sent again while the unit reports more), and another controller's
+                        speed is taken over; the handle returns to coast on any stop,
                         track status change, disconnect or loco STOP.
   consist/              PURE consist math: speed per member (128-step scale, converted per
                         member, offset in its own steps), direction, safety rules. Functions
@@ -157,8 +159,18 @@ paths (see `docs/development.md`). Emulator AVD: `Medium_Phone_API_37.0` (x86_64
   FIFO, so track the set yourself.
 - Drive commands: at most one per loco per `THROTTLE_INTERVAL_MS` (100), always the latest value,
   always the final value, nothing if unchanged. Pack several datasets into one datagram per tick.
-- No polling loops. Keepalive = LAN_X_GET_STATUS, sent only after ~25 s with nothing else sent
-  (well inside the 60 s timeout). Decided by the user.
+- No polling loops, with one exception (decided by the user after operation on a busy layout,
+  where lost datagrams hid STOPs and short circuits): LAN_X_GET_STATUS when the track status has
+  not been heard for `STATUS_CHECK_INTERVAL_MS` (3 s). It is also the keepalive.
+- A weak link is not a lost connection. No reply for `WEAK_AFTER_MS` (7 s) only shows "Weak" in the
+  header; the controls stay usable and everything is still sent. Only `CONNECTION_LOST_AFTER_MS`
+  (20 s) of silence counts as lost: then the controls lock and the app reconnects with a new
+  socket (login repeated every second, short retry delays, logoff on every abandoned socket).
+- Commands that matter are confirmed, never fire-and-forget: a drive command not shown by
+  LAN_X_LOCO_INFO within `DRIVE_CONFIRM_MS` is resent with LAN_X_GET_LOCO_INFO (a few times; never
+  after a stop, track status change, connection change or another controller's change). STOP and
+  power off are repeated until the track status confirms them, and go out on any open socket,
+  also while reconnecting; power on is not repeated (only the status is asked for).
 - Optional requests (HWINFO, GET_CODE, SystemState, E_STOP on old FW) must time out with a fallback
   and never block the UI.
 - Displayed loco state follows LAN_X_LOCO_INFO. Optimistic UI is fine, but always reconcile.

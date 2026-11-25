@@ -2,7 +2,12 @@ import {ConnectionEvents} from '../../connection';
 import {TypedEmitter} from '../../connection/emitter';
 import {LocoInfo} from '../../protocol';
 import {useLocoStore} from '../../store/locoStore';
-import {DriveConnection, DriveController} from '../DriveController';
+import {
+  DRIVE_CONFIRM_MS,
+  DRIVE_RESEND_ATTEMPTS,
+  DriveConnection,
+  DriveController,
+} from '../DriveController';
 import {STOP_DOUBLE_TAP_WINDOW_MS} from '../globalStop';
 import {LOCAL_CHANGE_HOLD_MS} from '../locoIntent';
 import {SHARED_CONTROL_HOLD_MS} from '../sharedControl';
@@ -26,6 +31,7 @@ const setup = () => {
   const connection = {
     on: jest.fn((event, listener) => events.on(event, listener)),
     drive: jest.fn(),
+    resendDrive: jest.fn(),
     setFunction: jest.fn(),
     emergencyStop: jest.fn(),
     emergencyStopLocos: jest.fn(),
@@ -46,7 +52,7 @@ const setup = () => {
   const emitReport = (overrides: Partial<LocoInfo> = {}) => {
     events.emit('locoInfo', report(overrides));
   };
-  return {connection, controller, clock, live, emitReport, unwatch};
+  return {connection, controller, clock, live, emitReport, unwatch, events};
 };
 
 describe('DriveController', () => {
@@ -271,6 +277,104 @@ describe('DriveController', () => {
     expect(live()?.speed).toBe(40);
     clock.advance(LOCAL_CHANGE_HOLD_MS);
     expect(live()).toMatchObject({known: false, speed: 0});
+  });
+
+  describe('unconfirmed drive commands', () => {
+    it('sends a lost command again until the central unit reports it', () => {
+      // Braking to a stop: the reply to step 1 arrives, the final 0 is lost.
+      const {connection, controller, clock, live, emitReport} = setup();
+      controller.watch(3);
+      emitReport({speed: 2});
+      controller.setSpeed(3, 1);
+      controller.setSpeed(3, 0);
+      emitReport({speed: 1});
+      expect(live()?.shared).toBe(false);
+
+      clock.advance(DRIVE_CONFIRM_MS);
+      expect(connection.resendDrive).toHaveBeenCalledWith({
+        address: 3,
+        steps: 128,
+        speed: 0,
+        forward: true,
+      });
+      emitReport({speed: 0});
+      clock.advance(DRIVE_CONFIRM_MS * 5);
+      expect(connection.resendDrive).toHaveBeenCalledTimes(1);
+      expect(live()).toMatchObject({speed: 0, shared: false});
+    });
+
+    it('does not resend a confirmed command', () => {
+      const {connection, controller, clock, emitReport} = setup();
+      controller.watch(3);
+      controller.setSpeed(3, 20);
+      emitReport({speed: 20});
+      clock.advance(DRIVE_CONFIRM_MS * 5);
+      expect(connection.resendDrive).not.toHaveBeenCalled();
+    });
+
+    it('gives up after a few attempts', () => {
+      const {connection, controller, clock} = setup();
+      controller.watch(3);
+      controller.setSpeed(3, 20);
+      clock.advance(DRIVE_CONFIRM_MS * (DRIVE_RESEND_ATTEMPTS + 3));
+      expect(connection.resendDrive).toHaveBeenCalledTimes(
+        DRIVE_RESEND_ATTEMPTS,
+      );
+    });
+
+    it.each([
+      [
+        'a global STOP',
+        (controller: DriveController) =>
+          controller.globalStop('emergencyStopThenPowerOff'),
+      ],
+      [
+        'a loco STOP',
+        (controller: DriveController) => {
+          controller.emergencyStopLoco(3);
+        },
+      ],
+    ])('never resends after %s', (_name, stop) => {
+      const {connection, controller, clock} = setup();
+      controller.watch(3);
+      controller.setSpeed(3, 20);
+      stop(controller);
+      clock.advance(DRIVE_CONFIRM_MS * 5);
+      expect(connection.resendDrive).not.toHaveBeenCalled();
+    });
+
+    it('never resends once the track is stopped or the connection changes', () => {
+      const {connection, controller, clock, events} = setup();
+      controller.watch(3);
+      controller.setSpeed(3, 20);
+      events.emit('trackStatus', 'emergencyStop');
+      controller.setSpeed(3, 30);
+      events.emit('state', 'reconnecting');
+      clock.advance(DRIVE_CONFIRM_MS * 5);
+      expect(connection.resendDrive).not.toHaveBeenCalled();
+    });
+
+    it('lets another controller win at once, without resending', () => {
+      const {connection, controller, clock, live, emitReport} = setup();
+      controller.watch(3);
+      emitReport({speed: 10});
+      controller.setSpeed(3, 30);
+      emitReport({speed: 55});
+      expect(live()).toMatchObject({speed: 55, shared: true});
+      expect(live()?.foreignDriveAt).toBeGreaterThan(0);
+      clock.advance(DRIVE_CONFIRM_MS * 5);
+      expect(connection.resendDrive).not.toHaveBeenCalled();
+    });
+
+    it('does not resend after another device stops the loco', () => {
+      const {connection, controller, clock, emitReport} = setup();
+      controller.watch(3);
+      emitReport({speed: 10});
+      controller.setSpeed(3, 30);
+      emitReport({speed: 0, emergencyStop: true});
+      clock.advance(DRIVE_CONFIRM_MS * 5);
+      expect(connection.resendDrive).not.toHaveBeenCalled();
+    });
   });
 
   it('flags another controller and clears the flag later', () => {
