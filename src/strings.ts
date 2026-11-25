@@ -272,6 +272,9 @@ const en = {
     connectedShort: 'Online',
     connectingShort: 'Wait',
     disconnectedShort: 'Offline',
+    // Connected, but no replies for a few seconds. Driving still works.
+    weak: 'Weak connection: replies from the central unit are missing',
+    weakShort: 'Weak',
     localNetworkDenied:
       'Throttle may not use the local network, so it cannot reach the central unit. Allow "Nearby devices" or local network access for Throttle in the phone settings.',
     openSettings: 'Open settings',
@@ -354,7 +357,10 @@ const en = {
         ? `Power ${percent} %`
         : percent < 0
           ? `Brake ${-percent} %`
-          : 'Coast',
+          : 'Coasting',
+    // Shown instead of "Coasting" while the handle is at centre and the loco
+    // stands still.
+    handleStopped: 'Stopped',
     noLoco: 'No loco on this throttle yet.',
     consistEmpty: 'This consist has no locos. Add locos to it in Vehicles.',
     members: 'Locos in this consist',

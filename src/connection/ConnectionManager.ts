@@ -31,20 +31,37 @@ import {LocoSubscriptions} from './subscriptions';
 import {nextTrackStatus, TrackStatus} from './trackStatus';
 import {UdpTransport} from './transport';
 
-// No reply within this time after connecting: try again.
+// No reply within this time after opening a socket: give up on it and try
+// again with a new one.
 export const CONNECT_TIMEOUT_MS = 3000;
+// While waiting for the first reply, the login is sent again this often: on
+// a busy Wi-Fi a single datagram is easily lost.
+export const LOGIN_RETRY_MS = 1000;
 // LAN_GET_HWINFO unanswered after this time: fall back to
 // LAN_X_GET_FIRMWARE_VERSION.
 export const DEVICE_INFO_TIMEOUT_MS = 2000;
-// The Z21 drops clients after 60 s of silence (§1.1). Send LAN_X_GET_STATUS
-// when nothing has been sent, or nothing received, for this long.
-export const KEEPALIVE_IDLE_MS = 25000;
-export const KEEPALIVE_CHECK_INTERVAL_MS = 5000;
-// Nothing received for this long (one keepalive went unanswered): connection
-// is lost.
-export const CONNECTION_LOST_AFTER_MS = 35000;
-// Delay before each reconnect attempt; the last value repeats.
-export const RECONNECT_DELAYS_MS = [1000, 2000, 5000, 10000, 20000, 30000];
+// How often the connection checks its timers below. Sends nothing by itself.
+export const LIVENESS_CHECK_INTERVAL_MS = 1000;
+// LAN_X_GET_STATUS when the track status has not been heard for this long.
+// Track status broadcasts are UDP and can be lost on a busy Wi-Fi; this
+// bounds how long a missed STOP, power off or short circuit can go unseen.
+// It is also the keepalive (the Z21 drops clients after 60 s of silence,
+// §1.1). One small request and reply per device.
+export const STATUS_CHECK_INTERVAL_MS = 3000;
+// Nothing received for this long (two status checks unanswered): the link is
+// weak. The controls stay usable and commands are still sent.
+export const WEAK_AFTER_MS = 7000;
+// Nothing received for this long: the connection is lost, and the app
+// reconnects with a new socket.
+export const CONNECTION_LOST_AFTER_MS = 20000;
+// Delay before each reconnect attempt; the last value repeats. Short on
+// purpose: an attempt is one small datagram per second.
+export const RECONNECT_DELAYS_MS = [500, 1000, 2000];
+// A STOP or track power command not confirmed by the track status within
+// this time is sent again (power on: only the status is asked for), at most
+// TRACK_COMMAND_ATTEMPTS times in all.
+export const TRACK_CONFIRM_MS = 500;
+export const TRACK_COMMAND_ATTEMPTS = 3;
 // LAN_X_SET_LOCO_E_STOP exists from Z21 FW 1.43 (§4.5).
 const LOCO_E_STOP_MIN_FIRMWARE = 143;
 
@@ -67,6 +84,8 @@ export type ProtocolLogEntry = {
 
 export type ConnectionEvents = {
   state: ConnectionState;
+  // Connected, but nothing has been received for WEAK_AFTER_MS.
+  linkWeak: boolean;
   trackStatus: TrackStatus;
   locoInfo: LocoInfo;
   deviceInfo: DeviceInfo;
@@ -114,13 +133,23 @@ export class ConnectionManager {
   private reconnectAttempt = 0;
 
   private connectTimer: ReturnType<typeof setTimeout> | null = null;
+  private loginTimer: ReturnType<typeof setTimeout> | null = null;
   private deviceInfoTimer: ReturnType<typeof setTimeout> | null = null;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-  private keepaliveTimer: ReturnType<typeof setInterval> | null = null;
+  private trackTimer: ReturnType<typeof setTimeout> | null = null;
+  private livenessTimer: ReturnType<typeof setInterval> | null = null;
 
-  private lastSentAt = 0;
   private lastReceivedAt = 0;
-  private lastKeepaliveAt = 0;
+  private lastStatusAt = 0;
+  private lastStatusRequestAt = 0;
+  private linkWeak = false;
+  // The last STOP or track power command, until the track status confirms it.
+  private trackCommand: {
+    command: Uint8Array;
+    expected: TrackStatus[];
+    resend: boolean;
+    attempts: number;
+  } | null = null;
 
   private deviceInfo: DeviceInfo = {};
   private trackStatus: TrackStatus = 'unknown';
@@ -148,6 +177,10 @@ export class ConnectionManager {
 
   getTrackStatus(): TrackStatus {
     return this.trackStatus;
+  }
+
+  isLinkWeak(): boolean {
+    return this.linkWeak;
   }
 
   getDeviceInfo(): DeviceInfo {
@@ -207,15 +240,38 @@ export class ConnectionManager {
 
   // --- Commands -----------------------------------------------------------
 
+  // Power off goes out like STOP (see emergencyStop). Power on only while
+  // connected; if it is not confirmed, the status is asked for, but the
+  // command is not repeated: a short circuit that is still there would only
+  // trip again.
   setTrackPower(on: boolean): void {
-    this.send([on ? lanXSetTrackPowerOn() : lanXSetTrackPowerOff()]);
+    if (on) {
+      if (this.state === 'connected') {
+        this.sendTrackCommand(lanXSetTrackPowerOn(), ['normal'], false);
+      } else {
+        this.log('info', 'Not connected; command dropped');
+      }
+    } else {
+      this.throttle.cancelAll();
+      this.sendTrackCommand(
+        lanXSetTrackPowerOff(),
+        ['powerOff', 'shortCircuit'],
+        true,
+      );
+    }
   }
 
   // Global emergency stop: all locos stop, track power stays on. Pending
-  // drive commands are discarded so nothing restarts a loco afterwards.
+  // drive commands are discarded so nothing restarts a loco afterwards. Sent
+  // even while reconnecting, if a socket is open: a STOP that may arrive is
+  // better than none. Repeated until the track status confirms it.
   emergencyStop(): void {
     this.throttle.cancelAll();
-    this.send([lanXSetStop()]);
+    this.sendTrackCommand(
+      lanXSetStop(),
+      ['emergencyStop', 'powerOff', 'shortCircuit'],
+      true,
+    );
   }
 
   // Emergency stop for individual locos (all members of a consist at once).
@@ -250,6 +306,19 @@ export class ConnectionManager {
   // Throttled; see DriveThrottle.
   drive(request: DriveRequest): void {
     this.throttle.set(request);
+  }
+
+  // Sends a drive command again at once, with a request for the loco's state
+  // in the same datagram: for a command the central unit has not confirmed
+  // (the command or its reply was lost). Not throttled and not skipped when
+  // unchanged, because "unchanged" may rest on the lost command.
+  resendDrive(request: DriveRequest): void {
+    this.throttle.cancel(request.address);
+    const drive = lanXSetLocoDrive({...request, emergencyStop: false});
+    const info = this.subscriptions.isWatched(request.address)
+      ? this.locoInfoRequests([request.address])
+      : [];
+    this.send([drive, ...info]);
   }
 
   setFunction(address: number, index: number, on: boolean): void {
@@ -326,19 +395,30 @@ export class ConnectionManager {
       return;
     }
     this.transport = transport;
-    // Login is implicit with the first command (§2.2). Flags must be set
-    // again on every login (§2.16).
-    this.sendNow([lanSetBroadcastFlags(this.broadcastFlags), lanXGetStatus()]);
+    this.sendLogin();
     this.connectTimer = setTimeout(() => {
       this.log('info', 'No reply from central unit');
-      this.closeSocket(false);
+      this.closeSocket(true);
       this.scheduleReconnect();
     }, CONNECT_TIMEOUT_MS);
   }
 
+  // Login is implicit with the first command (§2.2). Flags must be set again
+  // on every login (§2.16). Repeated until the first reply.
+  private sendLogin(): void {
+    this.sendNow([lanSetBroadcastFlags(this.broadcastFlags), lanXGetStatus()]);
+    this.lastStatusRequestAt = Date.now();
+    this.loginTimer = setTimeout(() => {
+      this.loginTimer = null;
+      this.sendLogin();
+    }, LOGIN_RETRY_MS);
+  }
+
   private onConnected(): void {
     this.clearTimer('connectTimer');
+    this.clearTimer('loginTimer');
     this.reconnectAttempt = 0;
+    this.lastStatusAt = Date.now();
     this.setState('connected');
 
     // Optional requests; the app works without the replies.
@@ -351,26 +431,28 @@ export class ConnectionManager {
 
     this.requestLocoInfo(this.subscriptions.watchedAddresses());
 
-    this.lastKeepaliveAt = Date.now();
-    this.keepaliveTimer = setInterval(() => {
-      this.checkKeepalive();
-    }, KEEPALIVE_CHECK_INTERVAL_MS);
+    this.livenessTimer = setInterval(() => {
+      this.checkLiveness();
+    }, LIVENESS_CHECK_INTERVAL_MS);
   }
 
-  private checkKeepalive(): void {
+  // A weak link (lost datagrams) is not a lost connection: the controls stay
+  // usable and everything is still sent. Only a long silence counts as lost.
+  private checkLiveness(): void {
     const now = Date.now();
-    if (now - this.lastReceivedAt >= CONNECTION_LOST_AFTER_MS) {
+    const silence = now - this.lastReceivedAt;
+    if (silence >= CONNECTION_LOST_AFTER_MS) {
       this.log('info', 'Connection lost');
       this.closeSocket(true);
       this.scheduleReconnect();
       return;
     }
-    const sendIdle = now - this.lastSentAt >= KEEPALIVE_IDLE_MS;
-    const receiveIdle =
-      now - this.lastReceivedAt >= KEEPALIVE_IDLE_MS &&
-      now - this.lastKeepaliveAt >= KEEPALIVE_IDLE_MS;
-    if (sendIdle || receiveIdle) {
-      this.lastKeepaliveAt = now;
+    this.setLinkWeak(silence >= WEAK_AFTER_MS);
+    if (
+      now - this.lastStatusAt >= STATUS_CHECK_INTERVAL_MS &&
+      now - this.lastStatusRequestAt >= STATUS_CHECK_INTERVAL_MS
+    ) {
+      this.lastStatusRequestAt = now;
       this.sendNow([lanXGetStatus()]);
     }
   }
@@ -392,19 +474,26 @@ export class ConnectionManager {
     }, delay);
   }
 
+  // With sendLogoff, LAN_LOGOFF goes out first (best effort), also on a
+  // socket that got no reply: the central unit may have heard the login, and
+  // a logoff frees its client slot at once instead of after 60 s.
   private closeSocket(sendLogoff: boolean): void {
     this.generation++;
     this.clearTimer('connectTimer');
+    this.clearTimer('loginTimer');
     this.clearTimer('deviceInfoTimer');
-    if (this.keepaliveTimer !== null) {
-      clearInterval(this.keepaliveTimer);
-      this.keepaliveTimer = null;
+    this.clearTimer('trackTimer');
+    this.trackCommand = null;
+    if (this.livenessTimer !== null) {
+      clearInterval(this.livenessTimer);
+      this.livenessTimer = null;
     }
+    this.setLinkWeak(false);
     this.throttle.reset();
     this.subscriptions.resetSubscribed();
 
     if (this.transport) {
-      if (sendLogoff && this.state === 'connected') {
+      if (sendLogoff) {
         this.sendNow([lanLogoff()]);
       }
       this.transport.close();
@@ -417,7 +506,12 @@ export class ConnectionManager {
   }
 
   private clearTimer(
-    name: 'connectTimer' | 'deviceInfoTimer' | 'reconnectTimer',
+    name:
+      | 'connectTimer'
+      | 'loginTimer'
+      | 'deviceInfoTimer'
+      | 'reconnectTimer'
+      | 'trackTimer',
   ): void {
     const timer = this[name];
     if (timer !== null) {
@@ -430,6 +524,7 @@ export class ConnectionManager {
 
   private handleDatagram(data: Uint8Array): void {
     this.lastReceivedAt = Date.now();
+    this.setLinkWeak(false);
     const messages = decodeDatagram(data);
     if (this.loggingEnabled) {
       const types = messages.map((message) => message.type).join(', ');
@@ -445,11 +540,18 @@ export class ConnectionManager {
 
   private handleMessage(message: Z21Message): void {
     const trackStatus = nextTrackStatus(this.trackStatus, message);
+    if (trackStatus !== undefined) {
+      this.lastStatusAt = Date.now();
+    }
     const trackStatusChanged =
       trackStatus !== undefined && trackStatus !== this.trackStatus;
     if (trackStatusChanged) {
       this.trackStatus = trackStatus;
       this.events.emit('trackStatus', trackStatus);
+    }
+    if (this.trackCommand?.expected.includes(this.trackStatus)) {
+      this.trackCommand = null;
+      this.clearTimer('trackTimer');
     }
 
     switch (message.type) {
@@ -519,6 +621,47 @@ export class ConnectionManager {
     });
   }
 
+  // A STOP or track power command, repeated (or followed by a status
+  // request) until the track status confirms it. A newer command replaces an
+  // older one. Goes out on any open socket, also while reconnecting.
+  private sendTrackCommand(
+    command: Uint8Array,
+    expected: TrackStatus[],
+    resend: boolean,
+  ): void {
+    this.clearTimer('trackTimer');
+    this.trackCommand = null;
+    if (this.transport === null) {
+      this.log('info', 'Not connected; command dropped');
+      return;
+    }
+    this.trackCommand = {command, expected, resend, attempts: 1};
+    this.sendNow([command]);
+    this.scheduleTrackCheck();
+  }
+
+  private scheduleTrackCheck(): void {
+    this.trackTimer = setTimeout(() => {
+      this.trackTimer = null;
+      const pending = this.trackCommand;
+      if (pending === null || pending.expected.includes(this.trackStatus)) {
+        this.trackCommand = null;
+        return;
+      }
+      if (pending.attempts >= TRACK_COMMAND_ATTEMPTS) {
+        this.log('info', 'Track command not confirmed');
+        this.trackCommand = null;
+        return;
+      }
+      pending.attempts++;
+      this.lastStatusRequestAt = Date.now();
+      this.sendNow(
+        pending.resend ? [pending.command, lanXGetStatus()] : [lanXGetStatus()],
+      );
+      this.scheduleTrackCheck();
+    }, TRACK_CONFIRM_MS);
+  }
+
   // Sends only while connected; commands issued while offline are dropped,
   // because replaying stale driving commands later would be unsafe.
   private send(datasets: Uint8Array[]): void {
@@ -541,7 +684,14 @@ export class ConnectionManager {
         this.log('out', toHex(datagram));
       }
     }
-    this.lastSentAt = Date.now();
+  }
+
+  private setLinkWeak(weak: boolean): void {
+    if (weak !== this.linkWeak) {
+      this.linkWeak = weak;
+      this.log('info', weak ? 'Link weak: no replies' : 'Link ok');
+      this.events.emit('linkWeak', weak);
+    }
   }
 
   private setState(state: ConnectionState): void {

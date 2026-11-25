@@ -4,8 +4,12 @@ import {
   ConnectionState,
   CONNECTION_LOST_AFTER_MS,
   DEVICE_INFO_TIMEOUT_MS,
-  KEEPALIVE_IDLE_MS,
+  LOGIN_RETRY_MS,
   RECONNECT_DELAYS_MS,
+  STATUS_CHECK_INTERVAL_MS,
+  TRACK_COMMAND_ATTEMPTS,
+  TRACK_CONFIRM_MS,
+  WEAK_AFTER_MS,
 } from '../ConnectionManager';
 import {THROTTLE_INTERVAL_MS} from '../driveThrottle';
 import {TrackStatus} from '../trackStatus';
@@ -113,14 +117,20 @@ describe('connecting', () => {
     expect(current().takeSent()).toEqual([]);
   });
 
-  it('retries with backoff while the central unit does not answer', async () => {
+  it('repeats the login, then retries with a new socket, while the central unit does not answer', async () => {
     const {manager, transports, states} = setup();
     manager.connect('192.168.0.111');
     await settle();
 
     await jest.advanceTimersByTimeAsync(CONNECT_TIMEOUT_MS);
     expect(transports[0].closed).toBe(true);
-    expect(transports[0].sent).toEqual([SET_FLAGS_AND_STATUS]); // no logoff
+    // A login every second, then a logoff in case the unit heard one.
+    expect(transports[0].sent).toEqual([
+      ...new Array<string>(CONNECT_TIMEOUT_MS / LOGIN_RETRY_MS).fill(
+        SET_FLAGS_AND_STATUS,
+      ),
+      LOGOFF,
+    ]);
     expect(states).toEqual(['connecting', 'reconnecting']);
 
     await jest.advanceTimersByTimeAsync(RECONNECT_DELAYS_MS[0]);
@@ -161,33 +171,50 @@ describe('connecting', () => {
   });
 });
 
-describe('keepalive and connection loss', () => {
-  it('sends LAN_X_GET_STATUS after the idle period', async () => {
+describe('status checks and connection loss', () => {
+  it('asks for the track status when it has not been heard for a while', async () => {
     const {current} = await connected();
     current().receive(HWINFO_FW_143);
-    jest.advanceTimersByTime(KEEPALIVE_IDLE_MS - 1000);
+    jest.advanceTimersByTime(STATUS_CHECK_INTERVAL_MS - 1000);
     expect(current().takeSent()).toEqual([]);
-    jest.advanceTimersByTime(5000);
+    jest.advanceTimersByTime(1000);
     expect(current().takeSent()).toEqual([GET_STATUS]);
+    // Not again until the interval has passed once more.
+    jest.advanceTimersByTime(STATUS_CHECK_INTERVAL_MS - 1000);
+    expect(current().takeSent()).toEqual([]);
   });
 
-  it('probes even while sending, if nothing is received', async () => {
+  it('counts a track status broadcast as heard', async () => {
+    const {current} = await connected();
+    current().receive(HWINFO_FW_143);
+    jest.advanceTimersByTime(STATUS_CHECK_INTERVAL_MS - 1000);
+    current().receive('07 00 40 00 61 01 60'); // power on
+    jest.advanceTimersByTime(STATUS_CHECK_INTERVAL_MS - 1000);
+    expect(current().takeSent()).toEqual([]);
+  });
+
+  it('reports a weak link but stays connected and keeps sending', async () => {
     const {manager, current} = await connected();
-    // Drive every second for 30 s without any reply.
-    for (let second = 1; second <= 30; second++) {
-      manager.drive({address: 3, steps: 128, speed: second, forward: true});
-      jest.advanceTimersByTime(1000);
-    }
-    expect(
-      current()
-        .takeSent()
-        .filter((s) => s === GET_STATUS),
-    ).toHaveLength(1);
+    const weak: boolean[] = [];
+    manager.on('linkWeak', (value) => weak.push(value));
+    jest.advanceTimersByTime(WEAK_AFTER_MS);
+    expect(weak).toEqual([true]);
+    expect(manager.getState()).toBe('connected');
+
+    current().takeSent();
+    manager.setFunction(3, 0, true);
+    expect(current().takeSent()).toEqual(['0A 00 40 00 E4 F8 00 03 40 5F']);
+
+    current().receive(STATUS_NORMAL);
+    expect(weak).toEqual([true, false]);
+    expect(manager.isLinkWeak()).toBe(false);
   });
 
-  it('reconnects with logoff when nothing is received', async () => {
-    const {transports, states} = await connected();
-    jest.advanceTimersByTime(CONNECTION_LOST_AFTER_MS + 5000);
+  it('reconnects with logoff when nothing is received for long', async () => {
+    const {manager, transports, states} = await connected();
+    jest.advanceTimersByTime(CONNECTION_LOST_AFTER_MS - 1000);
+    expect(manager.getState()).toBe('connected');
+    jest.advanceTimersByTime(1000);
 
     expect(transports[0].sent.at(-1)).toBe(LOGOFF);
     expect(transports[0].closed).toBe(true);
@@ -200,7 +227,7 @@ describe('keepalive and connection loss', () => {
   it('stays connected while replies keep coming', async () => {
     const {manager, current} = await connected();
     for (let i = 0; i < 10; i++) {
-      jest.advanceTimersByTime(KEEPALIVE_IDLE_MS + 5000);
+      jest.advanceTimersByTime(WEAK_AFTER_MS - 1000);
       current().receive(STATUS_NORMAL);
     }
     expect(manager.getState()).toBe('connected');
@@ -227,16 +254,31 @@ describe('disconnect', () => {
     expect(manager.getState()).toBe('disconnected');
   });
 
-  it('drops commands while not connected', async () => {
+  it('drops driving and power on while not connected', async () => {
     const {manager, current} = setup();
     manager.connect('192.168.0.111');
     await settle();
     current().takeSent();
 
-    manager.setTrackPower(false);
+    manager.setTrackPower(true);
     manager.drive({address: 3, steps: 128, speed: 10, forward: true});
+    manager.setFunction(3, 0, true);
     jest.advanceTimersByTime(THROTTLE_INTERVAL_MS);
     expect(current().sent).toEqual([]);
+  });
+
+  it('still sends STOP and power off on an open socket while connecting', async () => {
+    const {manager, current} = setup();
+    manager.connect('192.168.0.111');
+    await settle();
+    current().takeSent();
+
+    manager.emergencyStop();
+    manager.setTrackPower(false);
+    expect(current().takeSent()).toEqual([
+      '06 00 40 00 80 80',
+      '07 00 40 00 21 80 A1',
+    ]);
   });
 });
 
@@ -366,6 +408,18 @@ describe('locos', () => {
     expect(speeds).toEqual([64]);
   });
 
+  it('resends a drive command at once with a request for the loco state', async () => {
+    const {manager, current} = await connected();
+    manager.watchLocos([3]);
+    // The central unit reports speed 64, so 64 would normally be skipped.
+    current().receive('0E 00 40 00 EF 00 03 04 C1 12 01 01 80 BB');
+    current().takeSent();
+    manager.resendDrive({address: 3, steps: 128, speed: 64, forward: true});
+    expect(current().takeSent()).toEqual([
+      '0A 00 40 00 E4 13 00 03 C1 35 09 00 40 00 E3 F0 00 03 10',
+    ]);
+  });
+
   it('throttles drive commands', async () => {
     const {manager, current} = await connected();
     manager.drive({address: 3, steps: 128, speed: 63, forward: true});
@@ -481,6 +535,51 @@ describe('emergency stop safety', () => {
     current().receive('07 00 40 00 61 08 69');
     current().receive('08 00 40 00 62 22 02 42');
     expect(trackStatuses).toEqual(['normal', 'shortCircuit', 'powerOff']);
+  });
+
+  const STOP = '06 00 40 00 80 80';
+  const STOP_AND_STATUS = `${STOP} ${GET_STATUS}`;
+
+  it('repeats STOP with a status request until the track status confirms it', async () => {
+    const {manager, current} = await connected();
+    manager.emergencyStop();
+    expect(current().takeSent()).toEqual([STOP]);
+    jest.advanceTimersByTime(TRACK_CONFIRM_MS);
+    expect(current().takeSent()).toEqual([STOP_AND_STATUS]);
+    current().receive(BC_STOPPED);
+    jest.advanceTimersByTime(TRACK_CONFIRM_MS * 5);
+    expect(current().takeSent()).not.toContain(STOP_AND_STATUS);
+  });
+
+  it('does not repeat a STOP that was confirmed at once', async () => {
+    const {manager, current} = await connected();
+    current().receive(HWINFO_FW_143);
+    manager.emergencyStop();
+    current().receive(BC_STOPPED);
+    current().takeSent();
+    jest.advanceTimersByTime(TRACK_CONFIRM_MS * 5);
+    expect(current().takeSent()).toEqual([]);
+  });
+
+  it('gives up on an unconfirmed STOP after a few attempts', async () => {
+    const {manager, current} = await connected();
+    current().receive(HWINFO_FW_143);
+    manager.emergencyStop();
+    jest.advanceTimersByTime(TRACK_CONFIRM_MS * (TRACK_COMMAND_ATTEMPTS + 2));
+    const sent = current().takeSent();
+    expect(sent.filter((datagram) => datagram.startsWith(STOP))).toHaveLength(
+      TRACK_COMMAND_ATTEMPTS,
+    );
+  });
+
+  it('asks only for the status after an unconfirmed power on', async () => {
+    const {manager, current} = await connected();
+    current().receive(HWINFO_FW_143);
+    current().receive(BC_POWER_OFF);
+    current().takeSent();
+    manager.setTrackPower(true);
+    jest.advanceTimersByTime(TRACK_CONFIRM_MS);
+    expect(current().takeSent()).toEqual(['07 00 40 00 21 81 A0', GET_STATUS]);
   });
 
   it('does not ask again for a repeated broadcast', async () => {

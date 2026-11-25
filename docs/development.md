@@ -127,7 +127,10 @@ network permission is not exercised. Test that on a real phone on the layout's W
   flags (basic only) plus a status request, combined in one datagram.
 - The app counts as **connected only after the first reply**. A server that never answers
   `LAN_X_GET_STATUS` will never get past _connecting_.
-- When idle, a keepalive (`07 00 40 00 21 24 05`) is sent about every 25 s.
+- A status request (`07 00 40 00 21 24 05`) goes out whenever the track status has not been
+  heard for 3 s. It is also the keepalive.
+- With no reply for 7 s the header shows **Weak** (driving still works); after 20 s the
+  connection counts as lost and the app reconnects.
 
 ## Building a release APK
 

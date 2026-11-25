@@ -10,6 +10,7 @@ export const ConnectionIndicator = () => {
   const {colors, fontSizes, minTouchTarget, spacing} = useTheme();
   const router = useRouter();
   const state = useConnectionStore((store) => store.state);
+  const weak = useConnectionStore((store) => store.linkWeak);
 
   const view = {
     connected: {
@@ -36,8 +37,15 @@ export const ConnectionIndicator = () => {
       short: strings.connection.disconnectedShort,
       long: strings.connection.disconnected,
     },
+    // Still connected and drivable; replies are missing for now.
+    weak: {
+      icon: 'lan-pending',
+      color: colors.connectionConnecting,
+      short: strings.connection.weakShort,
+      long: strings.connection.weak,
+    },
   } as const;
-  const current = view[state];
+  const current = view[state === 'connected' && weak ? 'weak' : state];
 
   return (
     <Pressable

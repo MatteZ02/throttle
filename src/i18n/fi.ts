@@ -264,6 +264,8 @@ export const fi: Strings = {
     connectedShort: 'Yhteys',
     connectingShort: 'Odota',
     disconnectedShort: 'Irti',
+    weak: 'Heikko yhteys: keskusyksikön vastauksia puuttuu',
+    weakShort: 'Heikko',
     localNetworkDenied:
       'Throttle ei saa käyttää paikallisverkkoa, joten se ei tavoita keskusyksikköä. Salli Throttlelle ”Lähellä olevat laitteet” tai paikallisverkon käyttö puhelimen asetuksista.',
     openSettings: 'Avaa asetukset',
@@ -343,6 +345,7 @@ export const fi: Strings = {
         : percent < 0
           ? `Jarrutus ${-percent} %`
           : 'Rullaus',
+    handleStopped: 'Pysähdyksissä',
     noLoco: 'Tälle ajosäätimelle ei ole valittu kalustoyksikköä.',
     consistEmpty:
       'Tässä moniajossa ei ole kalustoyksiköitä. Lisää niitä Kalusto-näkymässä.',
