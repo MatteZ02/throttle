@@ -93,8 +93,8 @@ The app asks for the camera or your photos only when you add a photo to a loco.
 - The **function buttons** (lights, sound, …) are on the left. Tap **C I, C II, C III** for
   more.
 - The loco's own **STOP** stops only that loco.
-- To choose another loco, tap the **grid button** at the bottom left. Locos you drove recently
-  are at the bottom of the screen.
+- To choose another loco, tap the **grid button** at the bottom left. Your vehicles are also at
+  the bottom of the screen.
 - Driving a loco by its address only (**Vehicles → Drive by address**)? Tap the address under
   the photo to change it.
 
@@ -114,10 +114,14 @@ buttons work as usual, and the handle returns to the middle after a stop.
 
 ### The red STOP at the top
 
-The red **STOP** in the middle of the top bar stops **all** trains on the layout, at once.
+The red **STOP** in the middle of the top bar stops **all** trains on the layout, at once, by
+switching the **track power off** (as in Roco's Z21 app).
 
-- **One tap:** all trains stop. The track stays powered.
-- **Two quick taps:** all trains stop, and the **track power is switched off** too.
+Under **Menu → Settings → STOP button** you can choose another behaviour instead:
+
+- **Emergency stop, double tap: power off:** one tap stops all trains and the track stays
+  powered; two quick taps also switch the track power off.
+- **Emergency stop only:** stops all trains; the track stays powered.
 - While the trains are stopped, a coloured sign takes the place of STOP: **STOPPED** (yellow, all
   trains stopped), **OFF** (blue, track power off) or **SHORT** (red, short circuit). To
   continue, **tap that sign**. The trains then continue at the speeds they had.
@@ -127,8 +131,8 @@ The app never asks "are you sure?" for STOP: it acts immediately.
 ### Settings
 
 Under **Menu → Settings** you can also choose what the bar at the bottom of the drive screen
-shows (**Recently driven**, or **All vehicles** in the order of your vehicle list) and the
-language.
+shows (**All vehicles** in the order of your vehicle list, the default, or **Recently
+driven**) and the language.
 
 ## Bringing your locos from the Roco Z21 app
 

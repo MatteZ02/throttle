@@ -80,14 +80,15 @@ slightly between phone makers and versions.
   **STOP**. After a loco STOP the speed shows 0.
 - A loco driven by address only ("Drive by address" in Vehicles): tapping the address under the
   photo opens a window to drive another address.
-- The red **STOP** in the middle of the header stops **all** trains. Tapping it twice quickly
-  (within about half a second) also switches the track power off. While stopped, a coloured
+- The red **STOP** in the middle of the header stops **all** trains by switching the track
+  power off (default, as in Roco's Z21 app). Settings → "STOP button" offers instead: emergency
+  stop with double tap = power off (within about half a second), or emergency stop only. While stopped, a coloured
   chip takes STOP's place: **"STOPPED"** (yellow), **"OFF"** (blue) or **"SHORT"** (red).
   To continue: **tap the chip** (one tap, no confirmation). Locos continue at their speeds.
   Programming mode shows **"PROG"** beside the connection status instead (not tappable).
 - Choose a loco: the grid button at the bottom left opens the vehicle list. The strip at the
-  bottom shows recently driven locos, or every vehicle in list order (Settings → "Vehicle bar on
-  the drive screen").
+  bottom shows every vehicle in list order (default), or recently driven locos (Settings →
+  "Vehicle bar on the drive screen").
 - **Drive mode** (Settings): **"Speed slider"** (default; the slider sets the speed) or
   **"Power handle"** (middle = coast, up = accelerate, down = brake, proportionally; the text
   under the speed says "Power 40 %", "Coasting", "Stopped" or "Brake 60 %"). Each loco's rates are

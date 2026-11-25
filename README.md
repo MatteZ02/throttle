@@ -10,8 +10,8 @@ An open-source replacement for the Roco Z21 app's driving features.
 
 - **Driving:** speed slider, direction, a STOP for each loco, function buttons with names and
   icons (latching or momentary), speed shown in km/h, mph or speed steps.
-- **Global STOP** always at the top of the screen: one tap stops all trains; tap twice quickly to
-  also switch the track power off (configurable). Track status, including short circuits, is
+- **Global STOP** always at the top of the screen: switches the track power off, as in Roco's
+  Z21 app, or (configurable) an emergency stop with the track still powered. Track status, including short circuits, is
   shown clearly.
 - **Vehicle library:** locos with photo, address, speed steps, function layout and details;
   search, sort, duplicate.

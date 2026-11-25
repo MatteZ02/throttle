@@ -118,10 +118,14 @@ STOP-painikkeet toimivat kuten ennenkin, ja kahva palaa keskelle pysäytyksen j�
 
 ### Punainen STOP ylhäällä
 
-Yläpalkin keskellä oleva punainen **STOP** pysäyttää **kaikki** radan junat heti.
+Yläpalkin keskellä oleva punainen **STOP** pysäyttää **kaikki** radan junat heti
+**katkaisemalla ajovirran** (kuten Rocon Z21-sovelluksessa).
 
-- **Yksi napautus:** kaikki junat pysähtyvät. Ajovirta pysyy päällä.
-- **Kaksi nopeaa napautusta:** kaikki junat pysähtyvät, ja myös **ajovirta katkaistaan**.
+Kohdasta **Menu → Settings → STOP button** voit valita toisen toiminnan:
+
+- **Hätäpysäytys, kaksoisnapautus: virta pois:** yksi napautus pysäyttää kaikki junat, ja
+  ajovirta pysyy päällä; kaksi nopeaa napautusta katkaisee myös ajovirran.
+- **Vain hätäpysäytys:** pysäyttää kaikki junat; ajovirta pysyy päällä.
 - Kun junat ovat pysähdyksissä, STOPin paikalle tulee värillinen merkki: **STOPPED** (keltainen,
   kaikki junat pysäytetty), **OFF** (sininen, ajovirta pois) tai **SHORT** (punainen,
   oikosulku). Jatka **napauttamalla tätä merkkiä**. Junat jatkavat samoilla nopeuksilla kuin
@@ -132,8 +136,8 @@ Sovellus ei koskaan kysy STOPista "oletko varma?", vaan toimii heti.
 ### Asetukset
 
 Kohdassa **Menu → Settings** voit myös valita, mitä ajonäkymän alareunan palkki näyttää
-(**Recently driven** eli äskettäin ajetut, tai **All vehicles** eli kaikki ajoneuvot
-ajoneuvoluettelon järjestyksessä), sekä kielen.
+(**All vehicles** eli koko kalusto luettelon järjestyksessä, oletus, tai **Recently driven**
+eli äskettäin ajetut), sekä kielen.
 
 ## Veturien tuonti Rocon Z21-sovelluksesta
 

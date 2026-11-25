@@ -36,7 +36,8 @@ export type Settings = {
 };
 
 // 'recent': recently driven, latest first. 'all': the whole vehicle list in
-// its own order (Vehicles → Arrange), top of the list leftmost.
+// its own order (Vehicles → Arrange), top of the list leftmost. The default
+// is 'all', as in Roco's Z21 app.
 export type VehicleBarMode = 'recent' | 'all';
 export const VEHICLE_BAR_MODES: VehicleBarMode[] = ['recent', 'all'];
 
@@ -97,7 +98,7 @@ export const useSettingsStore = create<SettingsStore>()(
       stopMode: DEFAULT_STOP_MODE,
       throttles: DEFAULT_THROTTLES,
       recent: [],
-      vehicleBar: 'recent',
+      vehicleBar: 'all',
       driveMode: 'speed',
       language: 'system',
       update: (changes) => {

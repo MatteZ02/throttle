@@ -188,12 +188,14 @@ paths (see `docs/development.md`). Emulator AVD: `Medium_Phone_API_37.0` (x86_64
   first: DCC decoders handle the reversal (with momentum they brake, reverse, accelerate). Decided
   by the user; revisit only if hardware shows otherwise.
 - Global STOP behaviour (decided by the user; configurable in settings):
-  - Default: **one tap = emergency stop** (LAN_X_SET_STOP, track stays powered), sent immediately
-    with no delay waiting for a possible second tap.
-  - **A second tap in quick succession additionally switches track power off**
-    (LAN_X_SET_TRACK_POWER_OFF).
-  - The double-tap window is a named constant.
+  - Default: **every tap = track power off** (LAN_X_SET_TRACK_POWER_OFF), as in Roco's Z21 app.
+  - Option: **one tap = emergency stop** (LAN_X_SET_STOP, track stays powered), sent immediately
+    with no delay waiting for a possible second tap; **a second tap in quick succession
+    additionally switches track power off**. The double-tap window is a named constant.
+  - Option: emergency stop only.
   - Restoring power is a separate, explicit control.
+- Other defaults as in Roco's Z21 app (decided by the user): drive mode speed slider, vehicle bar
+  "All vehicles". Changed defaults apply to new installs; saved settings are kept.
 - The loco's own STOP sends the drive command with the E-Stop speed value, plus
   LAN_X_SET_LOCO_E_STOP on FW 1.43+, in one datagram (decided by the user: Z21Sim ignores
   LAN_X_SET_LOCO_E_STOP, so it is never sent alone).

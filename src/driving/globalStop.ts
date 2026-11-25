@@ -1,14 +1,14 @@
 // What the global STOP control does when tapped. Chosen in settings.
 export type StopMode =
   // One tap: emergency stop (track stays powered). A second tap within
-  // STOP_DOUBLE_TAP_WINDOW_MS: track power off as well. The default.
+  // STOP_DOUBLE_TAP_WINDOW_MS: track power off as well.
   | 'emergencyStopThenPowerOff'
   // Every tap: emergency stop only.
   | 'emergencyStopOnly'
-  // Every tap: track power off.
+  // Every tap: track power off. The default, as in Roco's Z21 app.
   | 'powerOff';
 
-export const DEFAULT_STOP_MODE: StopMode = 'emergencyStopThenPowerOff';
+export const DEFAULT_STOP_MODE: StopMode = 'powerOff';
 
 // Two taps closer together than this count as a double tap.
 export const STOP_DOUBLE_TAP_WINDOW_MS = 600;

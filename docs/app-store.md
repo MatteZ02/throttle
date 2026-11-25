@@ -50,8 +50,8 @@ compatible with.
 > • Shows when another controller drives the same loco
 >
 > SAFETY
-> • A global STOP at the top of every driving screen: one tap stops all trains, a quick second
-> tap also switches the track power off
+> • A global STOP at the top of every driving screen: one tap stops all trains by switching the
+> track power off, or by an emergency stop if you prefer
 > • Emergency stop, power off and short circuits are shown in STOP's place; one tap resumes
 >
 > VEHICLE LIBRARY
