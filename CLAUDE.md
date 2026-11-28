@@ -162,6 +162,10 @@ paths (see `docs/development.md`). Emulator AVD: `Medium_Phone_API_37.0` (x86_64
 **Protocol and load (10 devices may share one central unit):**
 - Broadcast flags: only `0x00000001`. **Never `0x00010000`.** System-state broadcasts (`0x100`) are
   optional and off by default. Re-send the flags after every (re)connect.
+- Never overwrite other flags: the DR5000 keeps one flag set for all clients (unlike the spec's
+  per-client flags), so another app's feedback flags would be wiped. At login the flags are read
+  (LAN_GET_BROADCASTFLAGS), then set to "read value | ours" with a read-back until ours show
+  (bounded retries; unanswered reads fall back to setting ours alone).
 - Subscribe (LAN_X_GET_LOCO_INFO) only to locos shown on screen. Each consist member counts. Max 16,
   FIFO, so track the set yourself.
 - Drive commands: at most one per loco per `THROTTLE_INTERVAL_MS` (100), always the latest value,

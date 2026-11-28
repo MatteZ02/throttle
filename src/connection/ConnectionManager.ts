@@ -1,6 +1,7 @@
 import {
   BroadcastFlag,
   decodeDatagram,
+  lanGetBroadcastFlags,
   lanGetCode,
   lanGetHwInfo,
   lanGetSerialNumber,
@@ -37,6 +38,11 @@ export const CONNECT_TIMEOUT_MS = 3000;
 // While waiting for the first reply, the login is sent again this often: on
 // a busy Wi-Fi a single datagram is easily lost.
 export const LOGIN_RETRY_MS = 1000;
+// Broadcast flags are read, then set to "what the central unit has + ours"
+// (see setFlags). A read not answered within this time is sent again; after
+// FLAGS_ATTEMPTS unanswered reads, our flags are set on their own.
+export const FLAGS_CONFIRM_MS = 500;
+export const FLAGS_ATTEMPTS = 3;
 // LAN_GET_HWINFO unanswered after this time: fall back to
 // LAN_X_GET_FIRMWARE_VERSION.
 export const DEVICE_INFO_TIMEOUT_MS = 2000;
@@ -137,6 +143,7 @@ export class ConnectionManager {
   private deviceInfoTimer: ReturnType<typeof setTimeout> | null = null;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private trackTimer: ReturnType<typeof setTimeout> | null = null;
+  private flagsTimer: ReturnType<typeof setTimeout> | null = null;
   private livenessTimer: ReturnType<typeof setInterval> | null = null;
 
   private lastReceivedAt = 0;
@@ -150,6 +157,12 @@ export class ConnectionManager {
     resend: boolean;
     attempts: number;
   } | null = null;
+
+  // Broadcast flags of this login: the last value read from the central
+  // unit, whether ours are confirmed in it, and unanswered reads.
+  private knownFlags: number | null = null;
+  private flagsConfirmed = false;
+  private flagsAttempts = 0;
 
   private deviceInfo: DeviceInfo = {};
   private trackStatus: TrackStatus = 'unknown';
@@ -404,9 +417,10 @@ export class ConnectionManager {
   }
 
   // Login is implicit with the first command (§2.2). Flags must be set again
-  // on every login (§2.16). Repeated until the first reply.
+  // on every login (§2.16); they are read first (see onFlags). Repeated until
+  // the first reply.
   private sendLogin(): void {
-    this.sendNow([lanSetBroadcastFlags(this.broadcastFlags), lanXGetStatus()]);
+    this.sendNow([lanGetBroadcastFlags(), lanXGetStatus()]);
     this.lastStatusRequestAt = Date.now();
     this.loginTimer = setTimeout(() => {
       this.loginTimer = null;
@@ -430,10 +444,73 @@ export class ConnectionManager {
     }, DEVICE_INFO_TIMEOUT_MS);
 
     this.requestLocoInfo(this.subscriptions.watchedAddresses());
+    if (!this.flagsConfirmed) {
+      this.scheduleFlagsCheck();
+    }
 
     this.livenessTimer = setInterval(() => {
       this.checkLiveness();
     }, LIVENESS_CHECK_INTERVAL_MS);
+  }
+
+  // Broadcast flags are per client in the spec (§2.16), but the DigiKeijs
+  // DR5000 keeps one set for all clients: setting only ours would clear the
+  // flags another app (e.g. for feedback) relies on. So the flags are read
+  // and ours are added to them; the set is followed by another read until
+  // ours show up. On a Z21 the read just returns this client's flags.
+  // Only until ours are confirmed (or given up on), so a reply can never
+  // start a loop.
+  private onFlags(flags: number): void {
+    this.knownFlags = flags;
+    if (this.flagsConfirmed) {
+      return;
+    }
+    if ((flags & this.broadcastFlags) === this.broadcastFlags) {
+      this.flagsConfirmed = true;
+      this.clearTimer('flagsTimer');
+      this.log('info', `Broadcast flags ${flagsHex(flags)}`);
+      return;
+    }
+    this.flagsAttempts++;
+    if (this.flagsAttempts > FLAGS_ATTEMPTS) {
+      this.flagsConfirmed = true;
+      this.clearTimer('flagsTimer');
+      this.log('info', `Broadcast flags not taken: ${flagsHex(flags)}`);
+      return;
+    }
+    this.sendNow([
+      lanSetBroadcastFlags(flags | this.broadcastFlags),
+      lanGetBroadcastFlags(),
+    ]);
+    this.scheduleFlagsCheck();
+  }
+
+  private scheduleFlagsCheck(): void {
+    this.clearTimer('flagsTimer');
+    this.flagsTimer = setTimeout(() => {
+      this.flagsTimer = null;
+      if (this.flagsConfirmed) {
+        return;
+      }
+      this.flagsAttempts++;
+      const base = this.knownFlags ?? 0;
+      if (this.flagsAttempts >= FLAGS_ATTEMPTS) {
+        // No answer: set them anyway, as best effort.
+        this.flagsConfirmed = true;
+        this.sendNow([lanSetBroadcastFlags(base | this.broadcastFlags)]);
+        this.log('info', 'Broadcast flags not confirmed; set without reading');
+        return;
+      }
+      this.sendNow(
+        this.knownFlags === null
+          ? [lanGetBroadcastFlags()]
+          : [
+              lanSetBroadcastFlags(base | this.broadcastFlags),
+              lanGetBroadcastFlags(),
+            ],
+      );
+      this.scheduleFlagsCheck();
+    }, FLAGS_CONFIRM_MS);
   }
 
   // A weak link (lost datagrams) is not a lost connection: the controls stay
@@ -483,7 +560,11 @@ export class ConnectionManager {
     this.clearTimer('loginTimer');
     this.clearTimer('deviceInfoTimer');
     this.clearTimer('trackTimer');
+    this.clearTimer('flagsTimer');
     this.trackCommand = null;
+    this.knownFlags = null;
+    this.flagsConfirmed = false;
+    this.flagsAttempts = 0;
     if (this.livenessTimer !== null) {
       clearInterval(this.livenessTimer);
       this.livenessTimer = null;
@@ -511,7 +592,8 @@ export class ConnectionManager {
       | 'loginTimer'
       | 'deviceInfoTimer'
       | 'reconnectTimer'
-      | 'trackTimer',
+      | 'trackTimer'
+      | 'flagsTimer',
   ): void {
     const timer = this[name];
     if (timer !== null) {
@@ -585,6 +667,9 @@ export class ConnectionManager {
         if (this.deviceInfo.firmwareVersion === undefined) {
           this.updateDeviceInfo({firmwareVersion: message.firmwareVersion});
         }
+        break;
+      case 'broadcastFlags':
+        this.onFlags(message.flags);
         break;
       case 'code':
         this.updateDeviceInfo({lockCode: message.code});
@@ -711,3 +796,6 @@ export class ConnectionManager {
     }
   }
 }
+
+const flagsHex = (flags: number): string =>
+  `0x${flags.toString(16).toUpperCase().padStart(8, '0')}`;

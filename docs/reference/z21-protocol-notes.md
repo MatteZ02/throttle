@@ -49,6 +49,8 @@ Notes:
 - **Logoff must be sent from the same port used for login.** In practice that means the same
   socket. (§2.2)
 - **Broadcast flags are stored per client (IP + port) and must be set again at every login.**
+  Not so on the DigiKeijs DR5000: it keeps one set for all clients, so the app reads the flags
+  and adds its own instead of overwriting them.
   After a reconnect, after a timeout caused by being in the background, or after a port change,
   always re-send them. (§2.16)
 

@@ -4,6 +4,8 @@ import {
   ConnectionState,
   CONNECTION_LOST_AFTER_MS,
   DEVICE_INFO_TIMEOUT_MS,
+  FLAGS_ATTEMPTS,
+  FLAGS_CONFIRM_MS,
   LOGIN_RETRY_MS,
   RECONNECT_DELAYS_MS,
   STATUS_CHECK_INTERVAL_MS,
@@ -15,7 +17,11 @@ import {THROTTLE_INTERVAL_MS} from '../driveThrottle';
 import {TrackStatus} from '../trackStatus';
 import {FakeTransport} from '../testUtils/fakeTransport';
 
-const SET_FLAGS_AND_STATUS = '08 00 50 00 01 00 00 00 07 00 40 00 21 24 05';
+const LOGIN = '04 00 51 00 07 00 40 00 21 24 05';
+const GET_FLAGS = '04 00 51 00';
+// LAN_BROADCASTFLAGS replies.
+const FLAGS_NONE = '08 00 51 00 00 00 00 00';
+const FLAGS_BASIC = '08 00 51 00 01 00 00 00';
 const GET_STATUS = '07 00 40 00 21 24 05';
 const DEVICE_INFO_REQUESTS = '04 00 1A 00 04 00 18 00 04 00 10 00';
 const GET_FIRMWARE_VERSION = '07 00 40 00 F1 0A FB';
@@ -50,6 +56,7 @@ const connected = async (options?: {combineDatasets?: boolean}) => {
   context.manager.connect('192.168.0.111');
   await settle();
   context.current().receive(STATUS_NORMAL);
+  context.current().receive(FLAGS_BASIC);
   context.current().takeSent();
   return context;
 };
@@ -63,14 +70,14 @@ afterEach(() => {
 });
 
 describe('connecting', () => {
-  it('logs in by setting broadcast flags and requesting status in one datagram', async () => {
+  it('logs in by reading broadcast flags and requesting status in one datagram', async () => {
     const {manager, current, states} = setup();
     manager.connect('192.168.0.111');
     await settle();
 
     expect(current().host).toBe('192.168.0.111');
     expect(current().port).toBe(21105);
-    expect(current().sent).toEqual([SET_FLAGS_AND_STATUS]);
+    expect(current().sent).toEqual([LOGIN]);
     expect(states).toEqual(['connecting']);
   });
 
@@ -126,16 +133,14 @@ describe('connecting', () => {
     expect(transports[0].closed).toBe(true);
     // A login every second, then a logoff in case the unit heard one.
     expect(transports[0].sent).toEqual([
-      ...new Array<string>(CONNECT_TIMEOUT_MS / LOGIN_RETRY_MS).fill(
-        SET_FLAGS_AND_STATUS,
-      ),
+      ...new Array<string>(CONNECT_TIMEOUT_MS / LOGIN_RETRY_MS).fill(LOGIN),
       LOGOFF,
     ]);
     expect(states).toEqual(['connecting', 'reconnecting']);
 
     await jest.advanceTimersByTimeAsync(RECONNECT_DELAYS_MS[0]);
     expect(transports).toHaveLength(2);
-    expect(transports[1].sent).toEqual([SET_FLAGS_AND_STATUS]);
+    expect(transports[1].sent).toEqual([LOGIN]);
 
     // Second failure waits for the second delay.
     await jest.advanceTimersByTimeAsync(CONNECT_TIMEOUT_MS);
@@ -160,14 +165,102 @@ describe('connecting', () => {
     expect(manager.getState()).toBe('reconnecting');
 
     await jest.advanceTimersByTimeAsync(RECONNECT_DELAYS_MS[0]);
-    expect(transports[1].sent).toEqual([SET_FLAGS_AND_STATUS]);
+    expect(transports[1].sent).toEqual([LOGIN]);
   });
 
   it('uses separate datagrams when combining is turned off', async () => {
     const {manager, current} = setup({combineDatasets: false});
     manager.connect('192.168.0.111');
     await settle();
-    expect(current().sent).toEqual(['08 00 50 00 01 00 00 00', GET_STATUS]);
+    expect(current().sent).toEqual([GET_FLAGS, GET_STATUS]);
+  });
+});
+
+describe('broadcast flags', () => {
+  const login = async () => {
+    const context = setup();
+    context.manager.connect('192.168.0.111');
+    await settle();
+    context.current().receive(STATUS_NORMAL);
+    context.current().takeSent();
+    return context;
+  };
+
+  it('adds its flag to the ones the central unit already has', async () => {
+    // A DR5000 keeps one set of flags for all clients: another app's
+    // feedback flags (0x00000002 | 0x00080000) must survive.
+    const {current} = await login();
+    current().receive('08 00 51 00 02 00 08 00');
+    expect(current().takeSent()).toEqual([
+      '08 00 50 00 03 00 08 00 ' + GET_FLAGS,
+    ]);
+    current().receive('08 00 51 00 03 00 08 00');
+    jest.advanceTimersByTime(FLAGS_CONFIRM_MS * 4);
+    expect(current().takeSent()).not.toContain(GET_FLAGS);
+  });
+
+  it('sets only its own flag where the unit reports none (Z21: per client)', async () => {
+    const {current} = await login();
+    current().receive(FLAGS_NONE);
+    expect(current().takeSent()).toEqual([
+      '08 00 50 00 01 00 00 00 ' + GET_FLAGS,
+    ]);
+  });
+
+  it('sends nothing when its flag is already set', async () => {
+    const {current} = await login();
+    current().receive(FLAGS_BASIC);
+    jest.advanceTimersByTime(FLAGS_CONFIRM_MS * 4);
+    expect(
+      current()
+        .takeSent()
+        .filter((sent) => sent.includes('51 00') || sent.includes('50 00')),
+    ).toEqual([]);
+  });
+
+  it('repeats an unanswered read, then sets its flag anyway', async () => {
+    const {current} = await login();
+    jest.advanceTimersByTime(FLAGS_CONFIRM_MS);
+    expect(current().takeSent()).toEqual([GET_FLAGS]);
+    jest.advanceTimersByTime(FLAGS_CONFIRM_MS);
+    expect(current().takeSent()).toEqual([GET_FLAGS]);
+    jest.advanceTimersByTime(FLAGS_CONFIRM_MS);
+    expect(current().takeSent()).toEqual(['08 00 50 00 01 00 00 00']);
+    jest.advanceTimersByTime(FLAGS_CONFIRM_MS * 4);
+    expect(current().takeSent()).not.toContain(GET_FLAGS);
+  });
+
+  it('repeats a lost set, keeping the other flags', async () => {
+    const {current} = await login();
+    current().receive('08 00 51 00 02 00 00 00');
+    current().takeSent();
+    jest.advanceTimersByTime(FLAGS_CONFIRM_MS);
+    expect(current().takeSent()).toEqual([
+      '08 00 50 00 03 00 00 00 ' + GET_FLAGS,
+    ]);
+  });
+
+  it('gives up on a unit that never takes the flag', async () => {
+    const {current} = await login();
+    for (let i = 0; i < FLAGS_ATTEMPTS; i++) {
+      current().receive(FLAGS_NONE);
+    }
+    current().takeSent();
+    current().receive(FLAGS_NONE);
+    jest.advanceTimersByTime(FLAGS_CONFIRM_MS * 4);
+    expect(
+      current()
+        .takeSent()
+        .filter((sent) => sent.includes('51 00') || sent.includes('50 00')),
+    ).toEqual([]);
+  });
+
+  it('reads them again after a reconnect', async () => {
+    const {manager, transports} = await connected();
+    jest.advanceTimersByTime(CONNECTION_LOST_AFTER_MS);
+    await jest.advanceTimersByTimeAsync(RECONNECT_DELAYS_MS[0]);
+    expect(manager.getState()).toBe('reconnecting');
+    expect(transports[1].sent).toEqual([LOGIN]);
   });
 });
 
@@ -221,7 +314,7 @@ describe('status checks and connection loss', () => {
     expect(states.at(-1)).toBe('reconnecting');
 
     await jest.advanceTimersByTimeAsync(RECONNECT_DELAYS_MS[0]);
-    expect(transports[1].sent).toEqual([SET_FLAGS_AND_STATUS]);
+    expect(transports[1].sent).toEqual([LOGIN]);
   });
 
   it('stays connected while replies keep coming', async () => {
@@ -295,7 +388,7 @@ describe('app lifecycle', () => {
 
     manager.resume();
     await settle();
-    expect(transports[1].takeSent()).toEqual([SET_FLAGS_AND_STATUS]);
+    expect(transports[1].takeSent()).toEqual([LOGIN]);
     transports[1].receive(STATUS_NORMAL);
     expect(transports[1].takeSent()).toContain('09 00 40 00 E3 F0 00 03 10');
   });

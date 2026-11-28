@@ -5,11 +5,14 @@ import {ConnectionManager, ConnectionState} from '../ConnectionManager';
 import {TrackStatus} from '../trackStatus';
 import {NodeUdpTransport} from '../testUtils/nodeUdpTransport';
 
-// A very small fake Z21 on localhost: answers status, HWINFO and loco info
-// requests, and records every dataset it receives.
+// A very small fake Z21 on localhost: answers status, HWINFO, broadcast flag
+// and loco info requests, and records every dataset it receives. Like a
+// DR5000, it keeps one set of broadcast flags for all clients, here already
+// holding another app's feedback flags (0x00080002).
 const startFakeZ21 = async () => {
   const server = dgram.createSocket('udp4');
   const received: string[] = [];
+  let flags = '02 00 08 00';
 
   server.on('message', (message, remote) => {
     const reply = (hex: string) => {
@@ -19,7 +22,11 @@ const startFakeZ21 = async () => {
       .datasets) {
       received.push(`${header.toString(16)}:${toHex(data)}`);
       const body = toHex(data);
-      if (header === 0x40 && body === '21 24 05') {
+      if (header === 0x50) {
+        flags = body;
+      } else if (header === 0x51) {
+        reply(`08 00 51 00 ${flags}`);
+      } else if (header === 0x40 && body === '21 24 05') {
         reply('08 00 40 00 62 22 00 40');
       } else if (header === 0x1a) {
         reply('0C 00 1A 00 04 02 00 00 43 01 00 00');
@@ -78,10 +85,10 @@ describe('ConnectionManager over real UDP', () => {
 
       expect(states).toEqual(['connecting', 'connected', 'disconnected']);
       expect(speeds[0]).toBe(64);
-      expect(z21.received.slice(0, 2)).toEqual([
-        '50:01 00 00 00',
-        '40:21 24 05',
-      ]);
+      expect(z21.received.slice(0, 2)).toEqual(['51:', '40:21 24 05']);
+      // Its own flag is added; the other app's flags are kept.
+      expect(z21.received).toContain('50:03 00 08 00');
+      expect(z21.received).not.toContain('50:01 00 00 00');
       // The subscription, plus at most one re-request after the stop
       // broadcast: the broadcast repeated in the reply must not cause more.
       const locoRequests = z21.received.filter(

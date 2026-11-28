@@ -123,8 +123,11 @@ network permission is not exercised. Test that on a real phone on the layout's W
 ### What to look for in the log
 
 - `>>` is sent, `<<` is received, `--` is an info line.
-- On connect, the first datagram is `08 00 50 00 01 00 00 00 07 00 40 00 21 24 05`: broadcast
-  flags (basic only) plus a status request, combined in one datagram.
+- On connect, the first datagram is `04 00 51 00 07 00 40 00 21 24 05`: a broadcast flags read
+  plus a status request, combined in one datagram. When the flags reply arrives, the app sets
+  "those flags + `0x00000001`" (`08 00 50 00 …`) together with another read, until its flag
+  shows up (`-- Broadcast flags 0x…`). It never clears flags: on a DR5000 the flags are shared
+  by all clients, and other apps' flags must survive.
 - The app counts as **connected only after the first reply**. A server that never answers
   `LAN_X_GET_STATUS` will never get past _connecting_.
 - A status request (`07 00 40 00 21 24 05`) goes out whenever the track status has not been
