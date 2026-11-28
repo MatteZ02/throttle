@@ -8,9 +8,9 @@ UDP using the Z21 LAN protocol. There is no server, backend, accounts or analyti
 - Protocol: `docs/reference/z21-lan-protokoll-en_1.13.pdf` is the source of truth;
   `docs/reference/z21-protocol-notes.md` is a navigation aid with byte layouts, page references and
   known ambiguities.
-- Planned driver's view fed by Lever (the control station app, `D:\GitHub\lever`):
-  `docs/lever-driver-interface.md` (same file in Lever as `docs/driver-interface.md`; keep both in
-  step).
+- Driver link to Lever (the control station app, `D:\GitHub\lever`): `docs/driver-link.md` is the
+  contract. Lever's copy is the master; keep ours identical and never edit it alone (propose
+  changes to the user).
 - If the spec is ambiguous, or hardware behaves differently from it, tell the user; do not silently
   work around it.
 
@@ -26,6 +26,7 @@ UDP using the Z21 LAN protocol. There is no server, backend, accounts or analyti
 | 5 | Consists, Roco export import | code done; consists driven on the z21 start, the user's export imported on the emulator; awaiting user review |
 | 6 | Builds and docs | done; v0.1.0 released (signed APK); installation guides (`docs/install-*.md`), privacy policy and App Store drafts (`docs/app-store.md`) await user review |
 | 7 | UI polish after hardware tests (0.2.x): direction arrows only, address pop-up, vehicle bar and language settings, row-by-row default functions, status in STOP's place, power-off blue, speed slider gradient, power handle drive mode with per-loco acceleration | done; 0.2.1 tested by the user on Android and an iPhone against the z21; next: production builds |
+| 8 | Driver link to Lever (`feat/driver-link` branch, never merged into `release` by Claude): link client, line choice, driver's view strip | phase 0 (plan) done; waiting for the user's approval and for Lever's `packages/driver-link-protocol` |
 
 Roco app screenshots (`docs/reference/*_phone.PNG`, `*_tablet.PNG`), the spec PDF, a Roco export
 (`docs/reference/z21_layout_import.z21`) and `CLAUDE_CODE_PROMPT.md` exist only locally and are
