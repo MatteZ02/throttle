@@ -96,6 +96,9 @@ All ids are generated once, never reused, and have the format `<prefix>-<timesta
 **Versioning:**
 - A **minor** difference works: unknown fields and unknown types are ignored.
 - A **major** difference: Lever answers `error {code: "versionMismatch"}` and ignores the rest. Both sides show "update needed". Driving is unaffected.
+- **Unknown values** from a newer minor version never claim more than was sent:
+  - An unknown member of a value set that has a value claiming less becomes that value: certainty → `unknown`, aspect → `unknown`, route state → `unconfirmed`, `centralUnit` → `lost`, `leadsTo` kind → `unknown`, throttle `kind` → `address`, strip `source` → `manual`.
+  - Codes and reasons the receiver words itself (notice and error codes, `hold`, `endsBy`, `auto.state`, `auto.reason`) are open strings. A receiver shows an unknown one generically.
 
 **Capabilities:**
 - Each side lists the features it supports in `hello` / `welcome`.
@@ -132,11 +135,15 @@ All ids are generated once, never reused, and have the format `<prefix>-<timesta
 
 **Reliability:**
 - A reliable message is resent after `resendMs` with doubling backoff, up to `resendMaxMs`, until it is acked or replaced by a newer message about the same subject.
-- Receivers process each `id`+`seq` once.
+- Receivers process each `id`+`seq` once, and acknowledge every reliable message, also a repeated one (its first ack may have been lost) and one of an unknown type (so the sender stops resending).
+- A sender starts its `seq` at its clock in milliseconds, so seqs keep increasing across app restarts and a restarted app is never taken for a duplicate.
 
 ### 5.3 Chunking
 
-A body that would exceed the datagram limit is sent as parts: `t: "part"` with `{msgId, index, count, type, data}`, where `data` is a slice of the JSON text. The receiver reassembles all parts within `chunkTimeoutMs` or drops them. Version 1 needs this only for `lines` on large layouts, but both sides implement it for every type.
+A body that would exceed the datagram limit is sent as parts: `t: "part"` with `{msgId, index, count, type, data}`, where `data` is a slice of the JSON text. The receiver reassembles all parts within `chunkTimeoutMs` or drops them. Both sides implement it for every type. In version 1, `lines` on large layouts and most `lineStatus` messages (a line through several stations is a few kilobytes) are sent in parts.
+- `msgId` is unique per sender (at most 32 characters; the seq in base 36 by default).
+- Every part carries the original envelope's `seq` and `rel`. Receivers de-duplicate and acknowledge the **reassembled** message, never single parts. A resent reliable message resends all its parts.
+- Limits: at most 64 parts per message, 64 KB of reassembled text, 8 messages in parts per sender at a time.
 
 ### 5.4 Loco state fields
 
@@ -161,7 +168,7 @@ Fields:
 - `directional` (default **false**): on the club layout, *Pun* alone is enough. A layout run in both directions can set it to true and define `directions[]` (`{id, name, from: exitRef, to: exitRef}`).
 - When a line is directional, a per-line setting decides whether the driver must pick a direction.
 
-Lines are sent to Throttle as `{id, name, shortName, color, loop, directional, directions[]}`. `linesVersion` changes whenever any line changes.
+Lines are sent to Throttle as `{id, name, shortName, color, loop, directional, directions[] {id, name}, directionRequired}`. `directionRequired` (default false) is the per-line setting above. `linesVersion` changes whenever any line changes; like `locosDigest`, it is an opaque string of at most 64 characters, compared only for equality.
 
 ## 7. Locos and conflicts
 
@@ -234,6 +241,8 @@ For each **station passage** on the line, in line order, and in both directions 
 
 Positions follow the certainty rules of Lever's live state. A position that was only reported at start-up is `reported`, never `confirmed`.
 
+The message also carries `stale` (default false): Lever's own central-unit connection is interrupted or lost, as in `driverView`.
+
 ### 9.3 Mapping Lever's states to the contract (never claim more)
 
 | Lever | Contract |
@@ -257,6 +266,8 @@ Positions follow the certainty rules of Lever's live state. A position that was 
 - `controlled` (Lever drives the loco now);
 - `auto? {state: waiting | routing | running | stopping | dwelling | done, reason?, nextStopName?}`;
 - `stale` (Lever's own central-unit connection is interrupted or lost).
+
+A `driverView` with only `address` and `stale` (no `train`) means Lever has no train with this loco now.
 
 `freeAhead` and `endsBy` come from **the same pure look-ahead function** that Level 3 protection uses, so the phone can never disagree with the brakes.
 
