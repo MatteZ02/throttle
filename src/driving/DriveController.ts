@@ -11,6 +11,7 @@ import {
   applyChange,
   displayedLoco,
   emptyIntent,
+  isIntentEmpty,
   LOCAL_CHANGE_HOLD_MS,
   LocoChange,
   LocoIntent,
@@ -411,6 +412,7 @@ export class DriveController {
       ...displayedLoco(loco.report, loco.intent),
       shared: this.shared.isShared(address, this.now()),
       foreignDriveAt: loco.foreignDriveAt,
+      pending: !isIntentEmpty(loco.intent),
     };
     // Until the central unit reports the mode, show the configured one.
     live.speedSteps ??= loco.steps;

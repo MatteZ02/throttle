@@ -391,3 +391,54 @@ describe('DriveController', () => {
     expect(live()?.shared).toBe(false);
   });
 });
+
+// Read-only information for observers (the driver link); driving never
+// reads it.
+describe('pending local changes', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    useLocoStore.setState({locos: {}});
+  });
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('is not pending while the shown state is the central unit’s report', () => {
+    const {controller, live, emitReport} = setup();
+    controller.watch(3);
+    expect(live()?.pending).toBe(false);
+    emitReport({speed: 20});
+    expect(live()?.pending).toBe(false);
+  });
+
+  it('is pending from a local change until the report shows it', () => {
+    const {controller, live, emitReport} = setup();
+    controller.watch(3);
+    emitReport();
+    controller.setSpeed(3, 40);
+    expect(live()).toMatchObject({speed: 40, pending: true});
+    emitReport({speed: 40});
+    expect(live()).toMatchObject({speed: 40, pending: false});
+  });
+
+  it('counts direction and function changes too', () => {
+    const {controller, live, emitReport} = setup();
+    controller.watch(3);
+    emitReport();
+    controller.setFunction(3, 1, true);
+    expect(live()?.pending).toBe(true);
+    const functions = new Array<boolean>(29).fill(false);
+    functions[1] = true;
+    emitReport({functions});
+    expect(live()?.pending).toBe(false);
+  });
+
+  it('ends when an unconfirmed change expires', () => {
+    const {controller, live, clock} = setup();
+    controller.watch(3);
+    controller.setSpeed(3, 40);
+    expect(live()?.pending).toBe(true);
+    clock.advance(LOCAL_CHANGE_HOLD_MS);
+    expect(live()).toMatchObject({speed: 0, pending: false});
+  });
+});

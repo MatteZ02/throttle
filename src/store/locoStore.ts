@@ -6,6 +6,10 @@ export type LiveLoco = DisplayedLoco & {
   shared: boolean;
   // When another controller last changed speed or direction (0 = never).
   foreignDriveAt: number;
+  // A local change (speed, direction or a function) is shown but not yet
+  // reported by the central unit. Read-only information for observers such
+  // as the driver link; driving does not use it.
+  pending: boolean;
 };
 
 type LocoStoreState = {
