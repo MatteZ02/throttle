@@ -26,7 +26,7 @@ UDP using the Z21 LAN protocol. There is no server, backend, accounts or analyti
 | 5 | Consists, Roco export import | code done; consists driven on the z21 start, the user's export imported on the emulator; awaiting user review |
 | 6 | Builds and docs | done; v0.1.0 released (signed APK); installation guides (`docs/install-*.md`), privacy policy and App Store drafts (`docs/app-store.md`) await user review |
 | 7 | UI polish after hardware tests (0.2.x): direction arrows only, address pop-up, vehicle bar and language settings, row-by-row default functions, status in STOP's place, power-off blue, speed slider gradient, power handle drive mode with per-loco acceleration | done; 0.2.1 tested by the user on Android and an iPhone against the z21; next: production builds |
-| 8 | Driver link to Lever (`feat/driver-link` branch, never merged into `release` by Claude): link client, line choice, driver's view strip | phase 0 (plan) done; waiting for the user's approval and for Lever's `packages/driver-link-protocol` |
+| 8 | Driver link to Lever (`feat/driver-link` branch, never merged into `release` by Claude): link client, line choice, driver's view strip | phase 0 approved; phase 1 partly done (device id, link settings, pending flag, compatibility tests, expo-crypto and zod 4.6.7 checked under Hermes on the emulator); package copy waits for Lever's commit |
 
 Roco app screenshots (`docs/reference/*_phone.PNG`, `*_tablet.PNG`), the spec PDF, a Roco export
 (`docs/reference/z21_layout_import.z21`) and `CLAUDE_CODE_PROMPT.md` exist only locally and are
