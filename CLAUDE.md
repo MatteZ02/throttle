@@ -8,6 +8,9 @@ UDP using the Z21 LAN protocol. There is no server, backend, accounts or analyti
 - Protocol: `docs/reference/z21-lan-protokoll-en_1.13.pdf` is the source of truth;
   `docs/reference/z21-protocol-notes.md` is a navigation aid with byte layouts, page references and
   known ambiguities.
+- Planned driver's view fed by Lever (the control station app, `D:\GitHub\lever`):
+  `docs/lever-driver-interface.md` (same file in Lever as `docs/driver-interface.md`; keep both in
+  step).
 - If the spec is ambiguous, or hardware behaves differently from it, tell the user; do not silently
   work around it.
 
