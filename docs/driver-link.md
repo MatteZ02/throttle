@@ -59,12 +59,15 @@ All ids are generated once, never reused, and have the format `<prefix>-<timesta
 |---|---|---|---|
 | Lever project id | `prj` | New project, **Save as**, every import that creates a project, and migration of older files (section 10) | Throttle and Lever's user data tell projects apart (not by name) |
 | Lever instance id | `lvr` | Once per installation (settings) | Tells two Levers apart, even with the same project open |
-| Lever session id | `ses` | Every start of the link service | Throttle knows Lever restarted and its memory was reset |
+| Lever session id | `ses` | Every start of Lever's **engine**, which holds strips and phone data in memory. The link service only carries it, so a service-only restart keeps the same `ses` | Throttle knows Lever's memory was reset and re-sends everything |
 | Throttle device id | `thr` | Once per installation (settings) | Identifies the phone on strips; survives app restarts |
 
 ## 4. Transport
 
-- **UDP, JSON in UTF-8.** Lever listens on one port, default **21110**, configurable on both sides; it is chosen away from the Z21's 21105–21107. Lever replies from that port to the sender's address and port.
+- **UDP, JSON in UTF-8.** Lever listens on one port, default **21110**, configurable on both sides; it is chosen away from the Z21's 21105–21107.
+- **Replies come from the right address.** Lever replies from that port **and from the local address the datagram arrived on**, to the sender's address and port. Throttle drops datagrams from any other address or port.
+  - A PC can have several addresses on one adapter (the club PC has 192.168.0.50 as a second address).
+  - So Lever binds one socket per local IPv4 address, or only to a configured **bind address** (setting, default: all addresses, one socket each).
 - **Throttle uses its existing native UDP module**, with its own socket, separate from the central unit's. It sends to the configured Lever IP and port.
 - **Size:** each datagram is at most **1200 bytes** (configurable lower). Larger payloads are split (section 5.3).
 - **Loss handling:**
@@ -106,9 +109,9 @@ All ids are generated once, never reused, and have the format `<prefix>-<timesta
 
 | Type | Rel. | When | Body |
 |---|---|---|---|
-| `hello` | no | On start, then every `helloIntervalS` (lease) | `device {id, driverName?, app, appVersion}`, `capabilities[]`, `share {locoInfo, locoState, functions}`, `linesVersion?`, `throttles[]`: per throttle slot `{slot, addresses[] (lead first), kind: loco\|consist\|address, line?: {lineId, directionId?}}`, `locosDigest` (hash of the last `locos` body) |
-| `locos` | no | On change, and when Lever's `welcome` shows a different digest | `locos[]`: `{address, name, speedSteps, maxSpeedKmh, acceleration, braking}` and, for consists, `consists[]`: `{lead, members[] {address, reversed}}` |
-| `locoState` | no | On change, at most `stateRatePerS` per loco | `states[]`: `{address, speedStep, forward, functions?: {"0": true, …}, confirmed: bool}`. `confirmed` means the value came from the central unit's `LAN_X_LOCO_INFO`; otherwise it is a pending local change |
+| `hello` | no | On start, then every `helloIntervalS` (lease) | `device {id, driverName?, app: "throttle", appVersion}`, `capabilities[]`, `share {locoInfo, locoState, functions}`, `linesVersion?`, `throttles[]`: per throttle slot `{slot, addresses[] (lead first), kind: loco\|consist\|address, line?: {lineId, directionId?}}`, `locosDigest`: an opaque string of at most 64 characters, computed by the sender from its last `locos` body. Lever only compares it for equality and echoes it back |
+| `locos` | no | On change, and when Lever's `welcome` shows a different digest | `locos[]`: `{address, name, speedSteps, maxSpeedKmh, acceleration, braking}` and, for consists, `consists[]`: `{lead, members[] {address, reversed}}`. **Only locos with real figures (library locos and consist members).** A plain address appears only in `hello.throttles`, never here, because its default figures would cause false conflicts |
+| `locoState` | no | On change, at most `stateRatePerS` per loco | `states[]`: `{address, speedSteps: 14\|28\|128, step, eStop, forward, functions?, confirmed}`, defined in section 5.4 |
 | `setLine` | **yes** | Driver picks or clears a line | `{address (lead), lineId \| null, directionId?}` |
 | `getLines` | no | `welcome` shows a newer `linesVersion` | `{}` |
 | `ack` | no | Reply to a reliable message | `{seq}` |
@@ -135,11 +138,21 @@ All ids are generated once, never reused, and have the format `<prefix>-<timesta
 
 A body that would exceed the datagram limit is sent as parts: `t: "part"` with `{msgId, index, count, type, data}`, where `data` is a slice of the JSON text. The receiver reassembles all parts within `chunkTimeoutMs` or drops them. Version 1 needs this only for `lines` on large layouts, but both sides implement it for every type.
 
+### 5.4 Loco state fields
+
+- **`speedSteps` and `step`:** the loco's own speed-step mode as the central unit reports it in `LAN_X_LOCO_INFO`, and the step as a plain number in that mode: 0 to 14, 0 to 28, or 0 to 126. This is never the raw DCC encoding.
+- **`eStop: true`** when the loco is in emergency stop. `step` is then 0.
+- **`forward`:** the DCC direction.
+- **`functions`:** the **complete** set of function states the phone knows, both on and off (`{"0": true, "1": false, …}`), so each message replaces the last. A function missing from the set is unknown.
+- **`confirmed: true`** when the whole state comes from `LAN_X_LOCO_INFO`. `false` while a local change is not yet reported.
+
 ## 6. Lines (Lever project data)
 
 A **line** is an operator-defined path through the layout, described by **station exits** (Lever's `connector` elements). Defining lines:
 - A line is an **ordered list of exits**.
 - Consecutive exits in the same station view are a **passage through that station**. Consecutive exits in different views are the **undrawn stretch** between them.
+- **Exception:** two consecutive exits that are **paired with each other** are an undrawn stretch, even within one view. Example: olten's spiral, where OL_389 and OL_381 are paired in the same view.
+- **Terminus:** a station the line enters through a single exit is a passage with one entry, leading into the station.
 - A line may pass through any number of stations, and may be a **loop**: after the last exit it continues to the first.
 - **One exit may belong to several lines**, so lines can converge and share track.
 
@@ -160,7 +173,12 @@ Lines are sent to Throttle as `{id, name, shortName, color, loop, directional, d
   
   The automation does **not** restart by itself when the conflict clears. The operator starts it again.
 - **Two phones reporting different data for the same address** is a conflict too: noted, nothing stopped unless rule 2 applies.
-- **Addresses not in Lever's list:** the phone's data is used in memory, e.g. the braking rate for a Level 3 hold, if the project setting allows it (default on). It is marked "from phone" wherever it is shown.
+- **Addresses not in Lever's list:** if the project setting allows it (default on), a phone's figures can be used for a Level 3 hold, and it is marked "from phone" wherever it is shown. The rules:
+  - Lever's train may then carry a plain address instead of a project loco.
+  - A hold always brakes to 0. The phone's figures only decide the speed-step mode, the step scale and the braking rate.
+  - The figures are **frozen when a hold starts** and kept until that hold ends, even if the phone goes silent.
+  - If the phone sends different figures during a hold, that is noted as a conflict, but the frozen figures stay until the hold ends. The next hold uses the new figures.
+  - A plain address with no figures from any phone is not held, as today for trains without a loco.
 - **Loco state** (speed, direction, functions) from phones is shown on strips. It also fills in what Lever knows at Levels 1–2.
   - The central unit's own reports, when Lever has them, always win over a phone's.
   - Unconfirmed phone values are shown as such.
@@ -185,12 +203,17 @@ Fields:
 
 **Edits:**
 - The driver sets the line in Throttle; the operator may change the line or direction, the driver name, or end the strip.
-- Precedence is configurable: `lastChangeWins` (default) or `operatorWins`.
+- Precedence applies to the line, the direction and the driver name alike. It is configurable: `lastChangeWins` (default) or `operatorWins`.
+- **A phone's value counts as a change only when it differs from what that same phone declared last.** Repeating a value in `hello` never counts as a change, so it never reverts an operator's edit.
+  - A `hello` value is taken when Lever has no value of its own: a new strip, or after Lever's memory was reset.
+  - After that, only a new value from the phone (`setLine`, or a changed driver name) counts.
 - Every change records who made it. The phone shows operator changes as "changed by the control station".
 
 **Persistence:** strips live in memory. A setting can keep them across a Lever restart (default off).
 
 Lever's existing train labels are not replaced. When the operator labels a block, Lever offers the strip addresses as suggestions.
+
+**Remembered lines (Throttle):** Throttle remembers the last line per loco, consist **or plain address**, keyed together with the **project id**. A line id from another project is never proposed.
 
 ## 9. What Lever computes for a phone
 
@@ -200,7 +223,7 @@ For each **station passage** on the line, in line order, and in both directions 
 - `station {viewId, name}`, `entry {exitId, name}`;
 - `leadsTo`: where the track leads from that entry **with the turnouts as they are**:
   - `exit {exitId, name}` (through the station, the line's next exit or another);
-  - `track {name}` (a block or named track, ending at a buffer stop or open end);
+  - `track {name?}`: the track ends at a buffer stop or open end. The name is the block's name, else the track element's own name, else none. Throttle then shows "track ends";
   - `against {turnoutId, name}`: a turnout on the way lies another way and no path continues;
   - `unknown {turnoutId, name}`: a position is not known;
 - `alongLine: bool` (it leads to the line's next exit);
@@ -210,6 +233,17 @@ For each **station passage** on the line, in line order, and in both directions 
 - `level` of the area.
 
 Positions follow the certainty rules of Lever's live state. A position that was only reported at start-up is `reported`, never `confirmed`.
+
+### 9.3 Mapping Lever's states to the contract (never claim more)
+
+| Lever | Contract |
+|---|---|
+| Signal icon `shuntStop` / `shuntAllowed` / `dark` | aspect `stop` / `shunting` / `unknown` |
+| Turnout status `confirmed`, `reported`, `unknown`, `manual` | the same name |
+| Turnout status `commanded`, `retrying` | `moving` |
+| Turnout status `failed`, `mismatch`, `inconsistent` | `unknown` |
+| Connection `connected`; `connected` but interrupted | `centralUnit: connected`; `interrupted` |
+| Connection `connecting`, `reconnecting`, `disconnected` | `lost` |
 
 ### 9.2 `driverView`: per address, when a Lever train has this loco (Levels 3–4, with detection)
 
@@ -240,6 +274,8 @@ Positions follow the certainty rules of Lever's live state. A position that was 
 
 **Protocol:** section 5.1.
 
+**Identical central-unit traffic** is tested with the link on and off. The one allowed exception is a conflict stopping a Level 4 run, which sends drive commands through Lever's existing stop path. It is tested separately.
+
 **Each side alone:**
 - Lever with no linked phones, or phones sending only some capabilities, works as before.
 - Throttle facing silence or an old Lever behaves as if no control station were set: it tries every few seconds at most, with backoff, and never affects driving.
@@ -257,7 +293,8 @@ Positions follow the certainty rules of Lever's live state. A position that was 
 | Throttle | "No data" shown after | 6 s silence |
 | Throttle | Retry backoff | 3 s → 30 s |
 | Throttle | State messages per loco | max 4 per s |
-| Throttle | Remember last line per loco/consist | on |
+| Throttle | Remember last line per loco, consist or plain address (per project) | on |
+| Lever (app) | Bind address | all local IPv4 addresses, one socket each |
 | Lever (app) | Allowed source ranges | private (10/8, 172.16/12, 192.168/16) and link-local |
 | Lever (app) | Max phones | 20 |
 | Lever (app) | Lease timeout (phone silent) | 10 s |

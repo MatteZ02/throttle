@@ -49,3 +49,4 @@ docs/reference/*.png
 docs/reference/*.pdf
 docs/reference/*.z21
 CLAUDE_CODE_PROMPT.md
+THROTTLE_PROMPT.md
