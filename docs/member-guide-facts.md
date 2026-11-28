@@ -112,6 +112,18 @@ slightly between phone makers and versions.
    imported and anything that could not be.
 5. Speed steps are not in the Roco export; imported locos get 128 steps (can be changed per loco
    in Vehicles).
+6. The time capture of Roco's Traction tab is imported too.
+
+## Speed matching in consists
+
+- Each loco has a **"Traction"** tab with a **"Time capture"** table, as in Roco's app: speed step
+  and the seconds the loco takes over a stretch of track. Every loco must be timed over the
+  **same** stretch.
+- In a consist, a member with times runs at the speed step where it is as fast as the first
+  (lead) loco, if the lead has times too. The consist editor says so under the member.
+- The member's **"Speed difference"** (−30…+30 steps) is added on top, for fine tuning. Without
+  times, members get the consist speed scaled to their speed steps, plus the speed difference.
+- A standing consist never moves a member, and a moving consist never stops one.
 
 ## Troubleshooting
 

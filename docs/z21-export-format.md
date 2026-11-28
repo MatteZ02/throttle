@@ -65,8 +65,12 @@ The one sample consist ("Double vectron", address 3) has two members.
 
 ### `traction_list` (21 rows): speed measurements
 
-`loco_id`, `regulation_step` (10, 20, … 100), `time` in seconds ("Time capture" on the Traction
-tab). Out of scope for v1.
+`loco_id`, `regulation_step` (10, 20, … 110), `time` in seconds ("Time capture" on the Traction
+tab, `vehicles_traction_phone.PNG`): the time over a fixed stretch of track at that step. Imported
+as the loco's time capture for consist speed matching. The steps are read as 128-step values
+(the export stores no speed-step mode, and imported locos get 128 steps); a replaced loco with 14
+or 28 steps gets them converted. This reading of the step scale is an assumption: the sample only
+has steps up to 110, which fits 128 steps.
 
 ### Other tables
 

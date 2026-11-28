@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {MAX_SPEED_OFFSET} from '../../consist/consistMath';
+import {canMatchSpeed} from '../../consist/speedMatch';
 import {filePhotoStore, PhotoSource, pickPhoto} from '../../library/photos';
 import {ConsistDraft, ConsistMember, Loco} from '../../library/types';
 import {ConsistProblem} from '../../library/validation';
@@ -306,12 +307,22 @@ export const ConsistEditorScreen = () => {
           )}
           {form.members.map((member, index) => {
             const loco = locos.find((entry) => entry.id === member.locoId);
+            const leadLoco = locos.find(
+              (entry) => entry.id === form.members[0]?.locoId,
+            );
             return loco === undefined ? null : (
               <MemberCard
                 key={member.locoId}
                 loco={loco}
                 member={member}
                 first={index === 0}
+                speedMatched={
+                  index > 0 &&
+                  loco !== undefined &&
+                  leadLoco !== undefined &&
+                  canMatchSpeed(loco.speedTimes) &&
+                  canMatchSpeed(leadLoco.speedTimes)
+                }
                 last={index === form.members.length - 1}
                 onChange={(changes) => {
                   updateMember(index, changes);
@@ -402,6 +413,8 @@ type MemberCardProps = {
   loco: Loco;
   member: ConsistMember;
   first: boolean;
+  // Matched to the lead loco's speed from both time captures.
+  speedMatched: boolean;
   last: boolean;
   onChange: (changes: Partial<ConsistMember>) => void;
   onMove: (direction: -1 | 1) => void;
@@ -412,6 +425,7 @@ const MemberCard = ({
   loco,
   member,
   first,
+  speedMatched,
   last,
   onChange,
   onMove,
@@ -565,6 +579,13 @@ const MemberCard = ({
         <Text style={{color: colors.textSecondary, fontSize: fontSizes.small}}>
           {strings.consistEditor.speedOffsetHint}
         </Text>
+        {speedMatched && (
+          <Text
+            style={{color: colors.textSecondary, fontSize: fontSizes.small}}
+          >
+            {strings.consistEditor.speedMatched}
+          </Text>
+        )}
       </View>
 
       <AppButton

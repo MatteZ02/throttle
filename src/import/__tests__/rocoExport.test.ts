@@ -124,6 +124,15 @@ describeSample('reading the sample Roco export', () => {
     ]);
   });
 
+  it('reads the time capture of the Traction tab', async () => {
+    const data = await read();
+    const lugano = data.locos.find((loco) => loco.address === 6503);
+    // vehicles_traction_phone.PNG: 10 → 80.30 s … 100 → 6.02 s, then 110.
+    expect(lugano?.speedTimes).toHaveLength(11);
+    expect(lugano?.speedTimes[0]).toEqual({step: 10, seconds: 80.3});
+    expect(lugano?.speedTimes[9]).toEqual({step: 100, seconds: 6.02});
+  });
+
   it('knows every icon in the sample', async () => {
     const data = await read();
     expect(data.issues.filter((issue) => issue.kind === 'unknownIcon')).toEqual(
@@ -161,6 +170,10 @@ describe('import plan and applying it', () => {
     functions: [
       {number: 0, name: '', icon: 'light', momentary: false, slot: 0},
     ],
+    speedTimes: [
+      {step: 63, seconds: 20},
+      {step: 126, seconds: 10},
+    ],
     wasWagon: false,
   });
 
@@ -180,6 +193,7 @@ describe('import plan and applying it', () => {
       speedDisplay: 'step',
       acceleration: 2.5,
       braking: 4,
+      speedTimes: [],
       photo: null,
       notes: '',
       details: exported(0, 0).details,
@@ -259,6 +273,11 @@ describe('import plan and applying it', () => {
       speedSteps: 28,
       maxSpeed: 160,
       photo: 'stored-3.png',
+      // The 128-step time capture moved to the loco's 28 steps.
+      speedTimes: [
+        {step: 14, seconds: 20},
+        {step: 28, seconds: 10},
+      ],
     });
     expect(state().locos).toHaveLength(2);
   });
@@ -274,6 +293,12 @@ describe('import plan and applying it', () => {
     expect(
       state().locos.find((loco) => loco.name === 'Export 4')?.speedSteps,
     ).toBe(128);
+    expect(
+      state().locos.find((loco) => loco.name === 'Export 4')?.speedTimes,
+    ).toEqual([
+      {step: 63, seconds: 20},
+      {step: 126, seconds: 10},
+    ]);
   });
 });
 

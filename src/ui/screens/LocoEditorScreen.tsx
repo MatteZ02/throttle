@@ -8,6 +8,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import {convertSpeedTimes} from '../../consist/speedMatch';
 import {defaultFunctions, nextFreeNumber} from '../../library/functionSlots';
 import {filePhotoStore, PhotoSource, pickPhoto} from '../../library/photos';
 import {
@@ -19,7 +20,7 @@ import {
   LocoFunction,
 } from '../../library/types';
 import {DraftProblem} from '../../library/validation';
-import {SpeedSteps} from '../../protocol';
+import {maxSpeedStep, SpeedSteps} from '../../protocol';
 import {useLibraryStore} from '../../store/libraryStore';
 import {forgetVehicle} from '../../store/settingsStore';
 import {strings} from '../../strings';
@@ -32,18 +33,20 @@ import {FunctionEditor} from '../components/FunctionEditor';
 import {FunctionGrid} from '../components/FunctionGrid';
 import {LocoPhoto} from '../components/LocoPhoto';
 import {ScreenFrame} from '../components/ScreenFrame';
+import {SpeedTimeRow, SpeedTimeTable} from '../components/SpeedTimeTable';
 
-type Tab = 'data' | 'functions';
+type Tab = 'data' | 'functions' | 'traction';
 
 // The form keeps numbers as text while typing.
 type Form = Omit<
   LocoDraft,
-  'address' | 'maxSpeed' | 'acceleration' | 'braking'
+  'address' | 'maxSpeed' | 'acceleration' | 'braking' | 'speedTimes'
 > & {
   address: string;
   maxSpeed: string;
   acceleration: string;
   braking: string;
+  speedTimes: SpeedTimeRow[];
 };
 
 const newForm = (): Form => ({
@@ -58,6 +61,7 @@ const newForm = (): Form => ({
   notes: '',
   details: emptyDetails(),
   functions: defaultFunctions(),
+  speedTimes: [],
 });
 
 const formFromLoco = (loco: Loco): Form => ({
@@ -66,6 +70,10 @@ const formFromLoco = (loco: Loco): Form => ({
   maxSpeed: String(loco.maxSpeed),
   acceleration: String(loco.acceleration),
   braking: String(loco.braking),
+  speedTimes: loco.speedTimes.map((time) => ({
+    step: String(time.step),
+    seconds: String(time.seconds),
+  })),
 });
 
 const toNumber = (text: string): number =>
@@ -76,6 +84,35 @@ const toDecimal = (text: string): number => {
   const normalised = text.trim().replace(',', '.');
   return /^\d+(\.\d+)?$/.test(normalised) ? Number(normalised) : NaN;
 };
+
+// Empty rows are dropped; anything else is kept for validation.
+const toSpeedTimes = (rows: SpeedTimeRow[]) =>
+  rows
+    .filter((row) => row.step.trim() !== '' || row.seconds.trim() !== '')
+    .map((row) => ({
+      step: toNumber(row.step),
+      seconds: toDecimal(row.seconds),
+    }));
+
+// When the speed-step mode changes, measured steps move along so they keep
+// describing the same speeds. Rows that are not numbers yet stay as typed.
+const convertRows = (
+  rows: SpeedTimeRow[],
+  from: SpeedSteps,
+  to: SpeedSteps,
+): SpeedTimeRow[] =>
+  rows.map((row) => {
+    const step = toNumber(row.step);
+    if (Number.isNaN(step)) {
+      return row;
+    }
+    const [converted] = convertSpeedTimes(
+      [{step, seconds: 1}],
+      maxSpeedStep(from),
+      maxSpeedStep(to),
+    );
+    return {...row, step: String(converted.step)};
+  });
 
 const STEP_OPTIONS: {value: SpeedSteps; label: string}[] = [
   {value: 14, label: '14'},
@@ -192,12 +229,17 @@ export const LocoEditorScreen = () => {
       maxSpeed: toNumber(form.maxSpeed),
       acceleration: toDecimal(form.acceleration),
       braking: toDecimal(form.braking),
+      speedTimes: toSpeedTimes(form.speedTimes),
     };
     try {
       const result = await library.save(draft);
       if (!result.ok) {
         setProblems(result.problems);
-        setTab('data');
+        setTab(
+          result.problems.every((key) => key.startsWith('speedTime'))
+            ? 'traction'
+            : 'data',
+        );
         return;
       }
       discardSessionPhotos(draft.photo);
@@ -311,6 +353,7 @@ export const LocoEditorScreen = () => {
       <View accessibilityRole="tablist" style={styles.tabs}>
         {tabButton('data', strings.editor.dataTab)}
         {tabButton('functions', strings.editor.functionsTab)}
+        {tabButton('traction', strings.editor.tractionTab)}
       </View>
 
       {tab === 'data' ? (
@@ -387,7 +430,14 @@ export const LocoEditorScreen = () => {
             options={STEP_OPTIONS}
             value={form.speedSteps}
             onChange={(speedSteps) => {
-              update({speedSteps});
+              update({
+                speedSteps,
+                speedTimes: convertRows(
+                  form.speedTimes,
+                  form.speedSteps,
+                  speedSteps,
+                ),
+              });
             }}
           />
           <ChoiceRow
@@ -489,6 +539,36 @@ export const LocoEditorScreen = () => {
               />
             </View>
           )}
+        </ScrollView>
+      ) : tab === 'traction' ? (
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{padding: spacing.md, gap: spacing.md}}
+        >
+          <Text
+            accessibilityRole="header"
+            style={{
+              color: colors.textSecondary,
+              fontSize: fontSizes.large,
+              fontWeight: '700',
+            }}
+          >
+            {strings.editor.timeCapture}
+          </Text>
+          <Text
+            style={{color: colors.textSecondary, fontSize: fontSizes.small}}
+          >
+            {strings.editor.timeCaptureHint}
+          </Text>
+          <SpeedTimeTable
+            rows={form.speedTimes}
+            onChange={(speedTimes) => {
+              update({speedTimes});
+            }}
+            message={
+              problem('speedTimeInvalid') ?? problem('speedTimeDuplicate')
+            }
+          />
         </ScrollView>
       ) : (
         <View style={styles.flex}>

@@ -1,5 +1,5 @@
 import {isValidOffset} from '../consist/consistMath';
-import {isValidLocoAddress} from '../protocol';
+import {isValidLocoAddress, maxSpeedStep} from '../protocol';
 import {MAX_FUNCTION_NUMBER, MAX_SLOTS} from './functionSlots';
 import {ConsistDraft, LocoDraft} from './types';
 
@@ -7,6 +7,8 @@ export const MAX_SPEED_KMH = 500;
 // Acceleration and braking in km/h per second.
 export const MIN_ACCELERATION = 0.1;
 export const MAX_ACCELERATION = 100;
+// Longest time capture measurement, in seconds.
+export const MAX_SPEED_TIME_SECONDS = 3600;
 
 const isValidRate = (value: number) =>
   Number.isFinite(value) &&
@@ -22,7 +24,9 @@ export type DraftProblem =
   | 'functionNumberInvalid'
   | 'functionNumberDuplicate'
   | 'functionSlotInvalid'
-  | 'functionSlotDuplicate';
+  | 'functionSlotDuplicate'
+  | 'speedTimeInvalid'
+  | 'speedTimeDuplicate';
 
 // Problems that prevent saving, in the order they should be shown.
 export const validateDraft = (draft: LocoDraft): DraftProblem[] => {
@@ -63,6 +67,24 @@ export const validateDraft = (draft: LocoDraft): DraftProblem[] => {
   }
   if (new Set(slots).size !== slots.length) {
     problems.push('functionSlotDuplicate');
+  }
+  const maxStep = maxSpeedStep(draft.speedSteps);
+  if (
+    draft.speedTimes.some(
+      (time) =>
+        !Number.isInteger(time.step) ||
+        time.step < 1 ||
+        time.step > maxStep ||
+        !Number.isFinite(time.seconds) ||
+        time.seconds <= 0 ||
+        time.seconds > MAX_SPEED_TIME_SECONDS,
+    )
+  ) {
+    problems.push('speedTimeInvalid');
+  }
+  const steps = draft.speedTimes.map((time) => time.step);
+  if (new Set(steps).size !== steps.length) {
+    problems.push('speedTimeDuplicate');
   }
   return problems;
 };

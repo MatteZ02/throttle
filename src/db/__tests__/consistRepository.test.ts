@@ -14,6 +14,7 @@ const loco = (name: string, address: number): LocoDraft => ({
   speedDisplay: 'kmh',
   acceleration: 5,
   braking: 5,
+  speedTimes: [],
   photo: null,
   notes: '',
   details: emptyDetails(),

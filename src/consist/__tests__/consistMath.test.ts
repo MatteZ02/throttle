@@ -14,6 +14,7 @@ const member = (
   speedSteps,
   speedOffset,
   reversed,
+  speedTimes: [],
 });
 
 describe('consist speed for members', () => {

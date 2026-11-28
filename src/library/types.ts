@@ -42,6 +42,18 @@ export type Loco = {
   notes: string;
   details: LocoDetails;
   functions: LocoFunction[];
+  // Time capture (Traction tab), for speed matching in consists. May be
+  // empty.
+  speedTimes: SpeedTime[];
+};
+
+// One time capture measurement, as on the Roco app's Traction tab: the
+// seconds the loco takes over a fixed stretch of track at a speed step (in
+// the loco's own speed steps). Every loco is measured over the same stretch,
+// so the times compare their speeds; see src/consist/speedMatch.ts.
+export type SpeedTime = {
+  step: number;
+  seconds: number;
 };
 
 // For new locos, imported locos and plain addresses.

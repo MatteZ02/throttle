@@ -135,6 +135,7 @@ describe('draft validation', () => {
     speedDisplay: 'kmh',
     acceleration: 5,
     braking: 5,
+    speedTimes: [],
     photo: null,
     notes: '',
     details: emptyDetails(),
@@ -167,6 +168,33 @@ describe('draft validation', () => {
     expect(validateDraft(draft({functions: [fn(0, MAX_SLOTS)]}))).toEqual([
       'functionSlotInvalid',
     ]);
+  });
+
+  it('checks the time capture against the loco’s speed steps', () => {
+    const times = (step: number, seconds: number) => [{step, seconds}];
+    expect(validateDraft(draft({speedTimes: times(126, 5.5)}))).toEqual([]);
+    for (const speedTimes of [
+      times(0, 10),
+      times(127, 10),
+      times(20, 0),
+      times(20, NaN),
+      times(2.5, 10),
+    ]) {
+      expect(validateDraft(draft({speedTimes}))).toEqual(['speedTimeInvalid']);
+    }
+    expect(
+      validateDraft(draft({speedSteps: 28, speedTimes: times(29, 10)})),
+    ).toEqual(['speedTimeInvalid']);
+    expect(
+      validateDraft(
+        draft({
+          speedTimes: [
+            {step: 20, seconds: 10},
+            {step: 20, seconds: 11},
+          ],
+        }),
+      ),
+    ).toEqual(['speedTimeDuplicate']);
   });
 });
 

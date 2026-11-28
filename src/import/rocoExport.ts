@@ -1,7 +1,7 @@
 import {SqlDatabase} from '../db/database';
 import {MAX_FUNCTION_NUMBER, MAX_SLOTS} from '../library/functionSlots';
-import {LocoFunction, SpeedDisplay} from '../library/types';
-import {isValidLocoAddress} from '../protocol';
+import {LocoFunction, SpeedDisplay, SpeedTime} from '../library/types';
+import {isValidLocoAddress, maxSpeedStep} from '../protocol';
 import {iconForRoco, isKnownRocoIcon} from './rocoIcons';
 
 // Reading a Roco Z21 app export (format: docs/z21-export-format.md). Pure
@@ -25,6 +25,9 @@ export type ImportedLoco = {
     buildYear: string;
   };
   functions: LocoFunction[];
+  // Time capture from the Traction tab, in 128 speed steps (the export
+  // stores no speed-step mode; imported locos get 128).
+  speedTimes: SpeedTime[];
   // A Roco wagon (control car etc.) imported as a loco (decided by the user).
   wasWagon: boolean;
 };
@@ -77,6 +80,12 @@ type FunctionRow = {
   button_type: number | null;
   image_name: string | null;
   shortcut: string | null;
+};
+
+type TractionRow = {
+  loco_id: number;
+  regulation_step: number | null;
+  time: number | null;
 };
 
 type TrainRow = {train_id: number; vehicle_id: number; position: number | null};
@@ -164,6 +173,35 @@ export const readRocoExport = async (
         'SELECT train_id, vehicle_id, position FROM train_list ORDER BY train_id, position',
       )
     : [];
+
+  const tractionRows = tables.has('traction_list')
+    ? await db.getAllAsync<TractionRow>(
+        'SELECT loco_id, regulation_step, time FROM traction_list ORDER BY loco_id, regulation_step',
+      )
+    : [];
+
+  // Unusable or repeated rows are left out silently: they only refine speed
+  // matching, and the table stays editable after the import.
+  const speedTimesOf = (vehicleId: number): SpeedTime[] => {
+    const result: SpeedTime[] = [];
+    for (const row of tractionRows) {
+      const step = row.regulation_step;
+      const seconds = Number(row.time);
+      if (
+        row.loco_id === vehicleId &&
+        step !== null &&
+        Number.isInteger(step) &&
+        step >= 1 &&
+        step <= maxSpeedStep(128) &&
+        Number.isFinite(seconds) &&
+        seconds > 0 &&
+        !result.some((time) => time.step === step)
+      ) {
+        result.push({step, seconds});
+      }
+    }
+    return result;
+  };
 
   const photoOf = (name: string, file: string | null): string | null => {
     const photo = text(file);
@@ -259,6 +297,7 @@ export const readRocoExport = async (
         buildYear: text(row.build_year),
       },
       functions: functionsOf(row.id, name),
+      speedTimes: speedTimesOf(row.id),
       wasWagon: type === TYPE_WAGON,
     });
   }

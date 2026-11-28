@@ -148,7 +148,20 @@ over.
 4. Tap **Import**. With many photos, this can take about a minute.
 
 The Roco export does not include speed steps, so imported locos get 128 steps. You can change
-this for each loco under **Vehicles**.
+this for each loco under **Vehicles**. The time capture from Roco's Traction tab comes along.
+
+## Matching speeds in a consist
+
+Two locos often run at different speeds at the same speed step. To make them run together:
+
+1. Mark a stretch of track. Use the same stretch for every loco.
+2. Drive each loco over it at a few speed steps (for example 10, 20 … 120) and time it.
+3. Enter the times under **Vehicles → the loco → Traction**: speed step and seconds, one
+   measurement per row.
+
+When both the first loco of a consist and another member have times, that member runs at the
+speed step where it is as fast as the first loco. The consist's **Speed difference** still works
+on top of that, for fine tuning.
 
 ## If something does not work
 

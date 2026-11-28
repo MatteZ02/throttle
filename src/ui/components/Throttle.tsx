@@ -14,6 +14,7 @@ import {
   DEFAULT_BRAKING,
   DEFAULT_MAX_SPEED,
   Loco,
+  SpeedTime,
   VehicleRef,
 } from '../../library/types';
 import {maxSpeedStep, SpeedSteps} from '../../protocol';
@@ -52,6 +53,7 @@ type DriveMember = {
   loco: Loco | undefined;
   reversed: boolean;
   speedOffset: number;
+  speedTimes: readonly SpeedTime[];
 };
 
 // What the throttle drives, resolved from the library.
@@ -95,6 +97,7 @@ export const Throttle = ({index}: Props) => {
       loco,
       reversed: false,
       speedOffset: 0,
+      speedTimes: loco.speedTimes,
     });
     switch (selection.kind) {
       case 'library': {
@@ -149,6 +152,7 @@ export const Throttle = ({index}: Props) => {
               loco: undefined,
               reversed: false,
               speedOffset: 0,
+              speedTimes: [],
             },
           ],
         };
@@ -351,7 +355,13 @@ const ThrottleControls = ({
       controller.driveLocos(
         members.map((member) => ({
           address: member.address,
-          ...memberDrive(speed, forward, member),
+          // Members are matched to the lead's measured speed.
+          ...memberDrive(
+            speed,
+            forward,
+            member,
+            member === lead ? undefined : lead,
+          ),
         })),
       );
     } else {

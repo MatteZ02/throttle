@@ -101,7 +101,11 @@ src/
                         speed is taken over; the handle returns to coast on any stop,
                         track status change, disconnect or loco STOP.
   consist/              PURE consist math: speed per member (128-step scale, converted per
-                        member, offset in its own steps), direction, safety rules. Functions
+                        member, offset in its own steps), direction, safety rules.
+                        speedMatch.ts: speed matching from each loco's time capture (Traction
+                        tab, seconds over a fixed stretch at a step, as in Roco's app): a
+                        member runs at the step closest to the lead's measured speed, the
+                        offset adds on top; without measurements, plain scaling. Functions
                         are set per loco in the consist, with no mirroring or routing (decided
                         by the user): the member strip picks whose functions are shown.
                         Roco exports are shared from the Roco app through the iOS share sheet;

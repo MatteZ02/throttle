@@ -43,6 +43,14 @@ export const fi: Strings = {
     newTitle: 'Uusi kalustoyksikkö',
     dataTab: 'Tiedot',
     functionsTab: 'Toiminnot',
+    tractionTab: 'Veto',
+    timeCapture: 'Ajanotto',
+    timeCaptureHint:
+      'Nopeuksien sovittamiseen moniajossa. Mittaa, montako sekuntia kalustoyksiköltä kuluu saman rataosuuden ajamiseen muutamalla nopeusaskeleella. Käytä samaa osuutta kaikille. Moniajossa kukin kulkee sitten sillä askeleella, jolla se on yhtä nopea kuin ensimmäinen.',
+    speedStepColumn: 'Nopeusaskel',
+    secondsColumn: 'Aika (s)',
+    addSpeedTime: 'Lisää mittaus',
+    removeSpeedTime: 'Poista mittaus',
     photo: 'Kuva',
     takePhoto: 'Ota kuva',
     choosePhoto: 'Valitse kuva',
@@ -98,6 +106,9 @@ export const fi: Strings = {
         'Kutakin toimintonumeroa voi käyttää vain kerran.',
       functionSlotInvalid: 'Toiminto on toimintosivujen ulkopuolella.',
       functionSlotDuplicate: 'Kaksi toimintoa on samassa paikassa.',
+      speedTimeInvalid:
+        'Jokaisessa mittauksessa on oltava nopeusaskel väliltä 1–suurin askel ja yli 0 sekunnin aika.',
+      speedTimeDuplicate: 'Kunkin nopeusaskeleen voi mitata vain kerran.',
     },
   },
 
@@ -181,6 +192,8 @@ export const fi: Strings = {
       `${offset > 0 ? '+' : ''}${offset} / ${steps} nopeusporrasta`,
     speedOffsetHint:
       'Tekee tästä kalustoyksiköstä hieman nopeamman tai hitaamman, jotta kaikki kulkevat samaa nopeutta. Ei koskaan liikuta seisovaa junaa.',
+    speedMatched:
+      'Nopeus sovitettu ensimmäiseen ajanoton (Veto-välilehti) perusteella. Nopeusero lisätään siihen.',
     slower: 'Hitaammin',
     faster: 'Nopeammin',
     slowerSymbol: '−',

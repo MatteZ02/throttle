@@ -46,6 +46,14 @@ const en = {
     newTitle: 'New loco',
     dataTab: 'Data',
     functionsTab: 'Functions',
+    tractionTab: 'Traction',
+    timeCapture: 'Time capture',
+    timeCaptureHint:
+      'For matching speeds in consists. Measure how many seconds this loco takes over a stretch of track at a few speed steps. Use the same stretch for every loco. In a consist, each loco then runs at the step where it is as fast as the lead loco.',
+    speedStepColumn: 'Speed step',
+    secondsColumn: 'Time (s)',
+    addSpeedTime: 'Add measurement',
+    removeSpeedTime: 'Remove measurement',
     photo: 'Photo',
     takePhoto: 'Take photo',
     choosePhoto: 'Choose photo',
@@ -101,6 +109,9 @@ const en = {
       functionNumberDuplicate: 'Each function number can be used only once.',
       functionSlotInvalid: 'A function is outside the function pages.',
       functionSlotDuplicate: 'Two functions are in the same place.',
+      speedTimeInvalid:
+        'Each measurement needs a speed step from 1 to the top step and a time above 0 seconds.',
+      speedTimeDuplicate: 'Each speed step can be measured only once.',
     },
   },
 
@@ -188,6 +199,8 @@ const en = {
       `${offset > 0 ? '+' : ''}${offset} of ${steps} speed steps`,
     speedOffsetHint:
       'Makes this loco a little faster or slower, so that all locos run at the same speed. Never moves a standing train.',
+    speedMatched:
+      'Speed matched to the lead loco from the time capture (Traction tab). The speed difference adds to that.',
     slower: 'Slower',
     faster: 'Faster',
     slowerSymbol: '−',

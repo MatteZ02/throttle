@@ -59,6 +59,16 @@ export const MIGRATIONS: string[] = [
   ALTER TABLE locos ADD COLUMN braking REAL NOT NULL DEFAULT 5;
   UPDATE locos SET braking = acceleration;
   `,
+  // 5: time capture (Traction tab) for consist speed matching: seconds over a
+  // fixed stretch of track at a speed step (the loco's own steps).
+  `
+  CREATE TABLE loco_speed_times (
+    loco_id INTEGER NOT NULL REFERENCES locos(id) ON DELETE CASCADE,
+    step INTEGER NOT NULL,
+    seconds REAL NOT NULL,
+    PRIMARY KEY (loco_id, step)
+  );
+  `,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

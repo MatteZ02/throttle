@@ -18,6 +18,7 @@ const draft = (overrides: Partial<LocoDraft> = {}): LocoDraft => ({
   speedDisplay: 'kmh',
   acceleration: 3.5,
   braking: 7,
+  speedTimes: [],
   photo: null,
   notes: '',
   details: emptyDetails(),
@@ -30,6 +31,30 @@ const setup = async () => {
   await migrate(db);
   return {db, repo: new LocoRepository(db)};
 };
+
+describe('time capture', () => {
+  it('is stored, replaced on save and deleted with the loco', async () => {
+    const {db, repo} = await setup();
+    const id = await repo.save(
+      draft({
+        speedTimes: [
+          {step: 20, seconds: 40.24},
+          {step: 10, seconds: 80.3},
+        ],
+      }),
+    );
+    expect((await repo.get(id))?.speedTimes).toEqual([
+      {step: 10, seconds: 80.3},
+      {step: 20, seconds: 40.24},
+    ]);
+    await repo.save(draft({id, speedTimes: [{step: 50, seconds: 15.58}]}));
+    expect((await repo.list())[0].speedTimes).toEqual([
+      {step: 50, seconds: 15.58},
+    ]);
+    await repo.remove(id);
+    expect(await db.getAllAsync('SELECT * FROM loco_speed_times')).toEqual([]);
+  });
+});
 
 describe('migrations', () => {
   it('creates the schema and records the version', async () => {

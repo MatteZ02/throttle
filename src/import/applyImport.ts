@@ -4,7 +4,8 @@ import {
   DEFAULT_ACCELERATION,
   DEFAULT_BRAKING,
 } from '../library/types';
-import {DEFAULT_SPEED_STEPS} from '../protocol';
+import {convertSpeedTimes} from '../consist/speedMatch';
+import {DEFAULT_SPEED_STEPS, maxSpeedStep} from '../protocol';
 import {ImportPlan, memberTarget} from './importPlan';
 
 export type ImportResult = {
@@ -47,12 +48,13 @@ export const applyImport = async (
     const replacing =
       entry.choice === 'replace' ? entry.existing[0] : undefined;
     const photo = loco.photo === null ? null : await storePhoto(loco.photo);
+    const speedSteps = replacing?.speedSteps ?? DEFAULT_SPEED_STEPS;
     const saved = await library.save({
       id: replacing?.id,
       name: loco.name,
       address: loco.address,
       // Not in the export; 128 steps (decided by the user).
-      speedSteps: replacing?.speedSteps ?? DEFAULT_SPEED_STEPS,
+      speedSteps,
       maxSpeed: loco.maxSpeed,
       speedDisplay: loco.speedDisplay,
       // Not in the export either.
@@ -62,6 +64,12 @@ export const applyImport = async (
       notes: loco.notes,
       details: loco.details,
       functions: loco.functions,
+      // Measured in 128 steps; a replaced loco keeps its own steps.
+      speedTimes: convertSpeedTimes(
+        loco.speedTimes,
+        maxSpeedStep(128),
+        maxSpeedStep(speedSteps),
+      ),
     });
     if (!saved.ok) {
       result.failed.push(loco.name);

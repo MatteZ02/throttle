@@ -1,5 +1,11 @@
 import {SpeedSteps} from '../protocol';
-import {Loco, LocoDraft, LocoFunction, SpeedDisplay} from '../library/types';
+import {
+  Loco,
+  LocoDraft,
+  LocoFunction,
+  SpeedDisplay,
+  SpeedTime,
+} from '../library/types';
 import {SqlDatabase} from './database';
 import {nextPosition} from './vehicleOrder';
 
@@ -30,6 +36,12 @@ type FunctionRow = {
   slot: number;
 };
 
+type SpeedTimeRow = {
+  loco_id: number;
+  step: number;
+  seconds: number;
+};
+
 const toSpeedSteps = (value: number): SpeedSteps =>
   value === 14 || value === 28 ? value : 128;
 
@@ -44,7 +56,11 @@ const toFunction = (row: FunctionRow): LocoFunction => ({
   slot: row.slot,
 });
 
-const toLoco = (row: LocoRow, functions: LocoFunction[]): Loco => ({
+const toLoco = (
+  row: LocoRow,
+  functions: LocoFunction[],
+  speedTimes: SpeedTime[],
+): Loco => ({
   id: row.id,
   name: row.name,
   address: row.address,
@@ -63,6 +79,7 @@ const toLoco = (row: LocoRow, functions: LocoFunction[]): Loco => ({
     buildYear: row.build_year,
   },
   functions,
+  speedTimes,
 });
 
 // Plain SQL access to the loco library. Callers validate drafts first
@@ -84,7 +101,18 @@ export class LocoRepository {
       list.push(toFunction(row));
       byLoco.set(row.loco_id, list);
     }
-    return rows.map((row) => toLoco(row, byLoco.get(row.id) ?? []));
+    const timeRows = await this.db.getAllAsync<SpeedTimeRow>(
+      'SELECT * FROM loco_speed_times ORDER BY loco_id, step',
+    );
+    const timesByLoco = new Map<number, SpeedTime[]>();
+    for (const row of timeRows) {
+      const list = timesByLoco.get(row.loco_id) ?? [];
+      list.push({step: row.step, seconds: row.seconds});
+      timesByLoco.set(row.loco_id, list);
+    }
+    return rows.map((row) =>
+      toLoco(row, byLoco.get(row.id) ?? [], timesByLoco.get(row.id) ?? []),
+    );
   }
 
   async get(id: number): Promise<Loco | null> {
@@ -99,11 +127,19 @@ export class LocoRepository {
       'SELECT * FROM loco_functions WHERE loco_id = ? ORDER BY slot',
       id,
     );
-    return toLoco(row, functions.map(toFunction));
+    const times = await this.db.getAllAsync<SpeedTimeRow>(
+      'SELECT * FROM loco_speed_times WHERE loco_id = ? ORDER BY step',
+      id,
+    );
+    return toLoco(
+      row,
+      functions.map(toFunction),
+      times.map((time) => ({step: time.step, seconds: time.seconds})),
+    );
   }
 
   // Inserts a new loco (at the end of the list) or updates an existing one,
-  // replacing its functions. Returns the loco's id.
+  // replacing its functions and time capture. Returns the loco's id.
   async save(draft: LocoDraft): Promise<number> {
     let id = draft.id;
     await this.db.withTransactionAsync(async () => {
@@ -148,6 +184,10 @@ export class LocoRepository {
           'DELETE FROM loco_functions WHERE loco_id = ?',
           id,
         );
+        await this.db.runAsync(
+          'DELETE FROM loco_speed_times WHERE loco_id = ?',
+          id,
+        );
       }
       for (const fn of draft.functions) {
         await this.db.runAsync(
@@ -160,6 +200,14 @@ export class LocoRepository {
           fn.icon,
           fn.momentary ? 1 : 0,
           fn.slot,
+        );
+      }
+      for (const time of draft.speedTimes) {
+        await this.db.runAsync(
+          'INSERT INTO loco_speed_times (loco_id, step, seconds) VALUES (?, ?, ?)',
+          id,
+          time.step,
+          time.seconds,
         );
       }
     });

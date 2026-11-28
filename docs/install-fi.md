@@ -154,7 +154,22 @@ veturiyhdistelmät (consists) Throttleen.
 4. Napauta **Import**. Jos kuvia on paljon, tämä voi kestää noin minuutin.
 
 Rocon vientitiedostossa ei ole nopeusportaita, joten tuodut veturit saavat 128 porrasta. Voit
-muuttaa tämän kunkin veturin kohdalta **Vehicles**-näkymässä.
+muuttaa tämän kunkin veturin kohdalta **Vehicles**-näkymässä. Rocon Traction-välilehden
+ajanotto tulee mukana.
+
+## Nopeuksien sovittaminen moniajossa
+
+Kaksi veturia kulkee usein eri nopeutta samalla nopeusaskeleella. Jotta ne kulkisivat yhdessä:
+
+1. Merkitse rataosuus. Käytä samaa osuutta kaikille vetureille.
+2. Aja kullakin veturilla osuus muutamalla nopeusaskeleella (esimerkiksi 10, 20 … 120) ja
+   ota aika.
+3. Syötä ajat kohtaan **Vehicles → veturi → Veto**: nopeusaskel ja sekunnit, yksi mittaus
+   riviä kohden.
+
+Kun sekä moniajon ensimmäisellä veturilla että toisella jäsenellä on ajat, jäsen kulkee sillä
+nopeusaskeleella, jolla se on yhtä nopea kuin ensimmäinen. Moniajon **Nopeusero** toimii yhä
+sen päällä hienosäätöön.
 
 ## Jos jokin ei toimi
 
