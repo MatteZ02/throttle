@@ -285,4 +285,13 @@ describe('Roco icon names', () => {
     expect(iconForRoco('something_new')).toBe('none');
     expect(iconForRoco(null)).toBe('none');
   });
+
+  it('keeps distinct Roco icons distinct', () => {
+    expect(iconForRoco('horn_low')).toBe('hornLow');
+    expect(iconForRoco('horn_two_sound')).toBe('airHorn');
+    expect(iconForRoco('whistle_short')).toBe('whistleShort');
+    expect(iconForRoco('rail_kick')).toBe('railJoints');
+    expect(iconForRoco('curve_sound')).toBe('curveSqueal');
+    expect(iconForRoco('puffer_kick')).toBe('buffers');
+  });
 });
