@@ -1,6 +1,13 @@
 import type {SQLiteStorage} from 'expo-sqlite/kv-store';
 import {create} from 'zustand';
 import {createJSONStorage, persist, StateStorage} from 'zustand/middleware';
+import {
+  DEFAULT_LINK_SETTINGS,
+  LinkSettings,
+  normalizeLinkSettings,
+  normalizeRememberedLines,
+  RememberedLine,
+} from '../driverLink/linkSettings';
 import {DEFAULT_STOP_MODE, StopMode} from '../driving/globalStop';
 import {withoutRecent, withRecent} from '../library/recent';
 import {VehicleRef} from '../library/types';
@@ -33,6 +40,14 @@ export type Settings = {
   driveMode: DriveMode;
   // 'system' follows the phone; unsupported languages fall back to English.
   language: LanguageSetting;
+  // Driver link (docs/driver-link.md). Added after settings version 3
+  // without a version bump: new keys only, each with a default, so older
+  // saved settings load unchanged and older app versions keep these keys.
+  // The phone's id on the link, generated once ('' until then).
+  deviceId: string;
+  link: LinkSettings;
+  // Last line per project and vehicle; see rememberedLineKey().
+  rememberedLines: Record<string, RememberedLine>;
 };
 
 // 'recent': recently driven, latest first. 'all': the whole vehicle list in
@@ -101,6 +116,9 @@ export const useSettingsStore = create<SettingsStore>()(
       vehicleBar: 'all',
       driveMode: 'speed',
       language: 'system',
+      deviceId: '',
+      link: DEFAULT_LINK_SETTINGS,
+      rememberedLines: {},
       update: (changes) => {
         set(changes);
       },
@@ -112,9 +130,29 @@ export const useSettingsStore = create<SettingsStore>()(
       partialize: ({update: _update, ...settings}) => settings,
       migrate: (persisted, version) =>
         migrateSettings(persisted, version) as unknown as SettingsStore,
+      merge: mergeSettings,
     },
   ),
 );
+
+// Saved settings over the defaults. As persist's default (a shallow merge),
+// except that the driver link's keys are validated: they are newer than the
+// rest, so they may be missing or come from a newer version.
+export function mergeSettings(
+  persisted: unknown,
+  current: SettingsStore,
+): SettingsStore {
+  const saved = (
+    typeof persisted === 'object' && persisted !== null ? persisted : {}
+  ) as Partial<Settings> & Record<string, unknown>;
+  return {
+    ...current,
+    ...saved,
+    deviceId: typeof saved.deviceId === 'string' ? saved.deviceId : '',
+    link: normalizeLinkSettings(saved.link),
+    rememberedLines: normalizeRememberedLines(saved.rememberedLines),
+  };
+}
 
 // One constant object, so the selector result stays stable between renders.
 const NO_SELECTION: ThrottleSelection = {kind: 'none'};

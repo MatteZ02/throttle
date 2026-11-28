@@ -3,6 +3,8 @@ import {AppState} from 'react-native';
 import {ConnectionManager} from '../connection';
 import {NativeUdpTransport} from '../connection/nativeUdpTransport';
 import {openLibraryDatabase} from '../db/openLibraryDatabase';
+import {ensureDeviceId} from '../driverLink/deviceId';
+import {nativeRandomBytes} from '../driverLink/nativeRandom';
 import {DriveController} from '../driving/DriveController';
 import {libraryDatabase, LibraryService} from '../library/LibraryService';
 import {filePhotoStore} from '../library/photos';
@@ -46,6 +48,12 @@ export const AppServicesProvider = ({children}: {children: ReactNode}) => {
   useEffect(() => {
     services.library.load().catch(() => undefined);
   }, [services]);
+
+  // The driver link's device id, once per installation. Nothing else of the
+  // link runs here; driving never depends on it.
+  useEffect(() => {
+    ensureDeviceId(nativeRandomBytes());
+  }, []);
 
   useEffect(() => {
     const {manager, controller} = services;
